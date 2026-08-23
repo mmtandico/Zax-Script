@@ -5,7 +5,6 @@
 
 local Utils = {}
 
--- Roblox Services
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
@@ -13,7 +12,13 @@ local HttpService = game:GetService("HttpService")
 local UserInputService = game:GetService("UserInputService")
 
 Utils.LocalPlayer = Players.LocalPlayer
-Utils.Camera = Workspace.CurrentCamera
+if not Utils.LocalPlayer then
+    task.spawn(function()
+        Utils.LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
+    end)
+end
+
+Utils.Camera = Workspace.CurrentCamera or Workspace:FindFirstChildOfClass("Camera")
 
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
     Utils.Camera = Workspace.CurrentCamera
@@ -22,16 +27,17 @@ end)
 -- Safe executor identification
 function Utils.GetExecutor()
     if identifyexecutor then
-        return identifyexecutor()
+        local name, ver = identifyexecutor()
+        return tostring(name) .. (ver and (" " .. tostring(ver)) or "")
     elseif getexecutorname then
         return getexecutorname()
     end
-    return "Unknown Executor"
+    return "Solara / Custom"
 end
 
 -- Get Local Character & Humanoid safely
 function Utils.GetCharacter(player)
-    player = player or Utils.LocalPlayer
+    player = player or Utils.LocalPlayer or Players.LocalPlayer
     if not player then return nil end
     return player.Character
 end
@@ -49,30 +55,30 @@ function Utils.GetHumanoid(player)
 end
 
 function Utils.IsAlive(player)
-    player = player or Utils.LocalPlayer
+    player = player or Utils.LocalPlayer or Players.LocalPlayer
     local hum = Utils.GetHumanoid(player)
     return hum and hum.Health > 0 and Utils.GetRoot(player) ~= nil
 end
 
 -- Team Checking
 function Utils.IsTeamMate(player)
-    if not player or player == Utils.LocalPlayer then return false end
-    if Utils.LocalPlayer.Neutral then return false end
-    if player.Team and Utils.LocalPlayer.Team then
-        return player.Team == Utils.LocalPlayer.Team
+    local lp = Utils.LocalPlayer or Players.LocalPlayer
+    if not player or player == lp then return false end
+    if not lp or lp.Neutral then return false end
+    if player.Team and lp.Team then
+        return player.Team == lp.Team
     end
-    if player.TeamColor and Utils.LocalPlayer.TeamColor then
-        return player.TeamColor == Utils.LocalPlayer.TeamColor
+    if player.TeamColor and lp.TeamColor then
+        return player.TeamColor == lp.TeamColor
     end
     return false
 end
 
 -- World to Screen conversion
 function Utils.WorldToViewportPoint(position: Vector3)
-    if not Utils.Camera then
-        Utils.Camera = Workspace.CurrentCamera
-    end
-    local screenPos, onScreen = Utils.Camera:WorldToViewportPoint(position)
+    local cam = Utils.Camera or Workspace.CurrentCamera
+    if not cam then return Vector2.zero, false, 0 end
+    local screenPos, onScreen = cam:WorldToViewportPoint(position)
     return Vector2.new(screenPos.X, screenPos.Y), onScreen, screenPos.Z
 end
 
@@ -92,9 +98,11 @@ function Utils.GetClosestPlayerToCursor(maxDistance, checkTeam, visibleOnly)
     local mousePos = UserInputService:GetMouseLocation()
     local closestPlayer = nil
     local shortestDistance = maxDistance
+    local cam = Utils.Camera or Workspace.CurrentCamera
+    local lp = Utils.LocalPlayer or Players.LocalPlayer
 
     for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= Utils.LocalPlayer and Utils.IsAlive(player) then
+        if player ~= lp and Utils.IsAlive(player) then
             if checkTeam and Utils.IsTeamMate(player) then
                 continue
             end
@@ -103,7 +111,7 @@ function Utils.GetClosestPlayerToCursor(maxDistance, checkTeam, visibleOnly)
             local head = player.Character:FindFirstChild("Head")
             local targetPart = head or root
 
-            if targetPart then
+            if targetPart and cam then
                 local screenPos, onScreen = Utils.WorldToViewportPoint(targetPart.Position)
                 if onScreen then
                     local screenDist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
@@ -111,9 +119,9 @@ function Utils.GetClosestPlayerToCursor(maxDistance, checkTeam, visibleOnly)
                         if visibleOnly then
                             local raycastParams = RaycastParams.new()
                             raycastParams.FilterType = RaycastFilterType.Exclude
-                            raycastParams.FilterDescendantsInstances = {Utils.LocalPlayer.Character, player.Character, Utils.Camera}
+                            raycastParams.FilterDescendantsInstances = {lp and lp.Character, player.Character, cam}
                             
-                            local rayResult = Workspace:Raycast(Utils.Camera.CFrame.Position, targetPart.Position - Utils.Camera.CFrame.Position, raycastParams)
+                            local rayResult = Workspace:Raycast(cam.CFrame.Position, targetPart.Position - cam.CFrame.Position, raycastParams)
                             if not rayResult then
                                 shortestDistance = screenDist
                                 closestPlayer = player

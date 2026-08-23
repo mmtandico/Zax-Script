@@ -23,13 +23,15 @@ end
 
 function Combat.Init()
     if HasDrawing() then
-        Combat.FOVCircle = Drawing.new("Circle")
-        Combat.FOVCircle.Visible = false
-        Combat.FOVCircle.Thickness = 1.5
-        Combat.FOVCircle.Color = Color3.fromRGB(255, 255, 255)
-        Combat.FOVCircle.Filled = false
-        Combat.FOVCircle.Transparency = 1
-        Combat.FOVCircle.NumSides = 64
+        pcall(function()
+            Combat.FOVCircle = Drawing.new("Circle")
+            Combat.FOVCircle.Visible = false
+            Combat.FOVCircle.Thickness = 1.5
+            Combat.FOVCircle.Color = Color3.fromRGB(255, 255, 255)
+            Combat.FOVCircle.Filled = false
+            Combat.FOVCircle.Transparency = 1
+            Combat.FOVCircle.NumSides = 64
+        end)
     end
 
     -- Right Click Aim Detection

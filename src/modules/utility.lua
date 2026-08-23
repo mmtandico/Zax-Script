@@ -20,14 +20,19 @@ local Utility = {
 
 function Utility.Init()
     -- Anti AFK
-    table.insert(Utility.Connections, Players.LocalPlayer.Idled:Connect(function()
-        local cfg = Config.CurrentConfig.Utility
-        if cfg and cfg.AntiAFK then
-            VirtualUser:CaptureController()
-            VirtualUser:ClickButton2(Vector2.new())
-            Notifications.Send("Anti-AFK", "Prevented 20-minute idle disconnect", 3)
+    task.spawn(function()
+        local lp = Utils.LocalPlayer or Players.LocalPlayer or Players.PlayerAdded:Wait()
+        if lp then
+            table.insert(Utility.Connections, lp.Idled:Connect(function()
+                local cfg = Config.CurrentConfig.Utility
+                if cfg and cfg.AntiAFK then
+                    VirtualUser:CaptureController()
+                    VirtualUser:ClickButton2(Vector2.new())
+                    Notifications.Send("Anti-AFK", "Prevented 20-minute idle disconnect", 3)
+                end
+            end))
         end
-    end))
+    end)
 
     -- Save original lighting
     Utility.OriginalLighting = {

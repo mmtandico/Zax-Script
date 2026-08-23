@@ -22,65 +22,68 @@ end
 local function CreateDrawings(player)
     if not HasDrawing() then return nil end
 
-    local drawings = {
-        BoxOutline = Drawing.new("Square"),
-        Box = Drawing.new("Square"),
-        Name = Drawing.new("Text"),
-        Distance = Drawing.new("Text"),
-        HealthBarOutline = Drawing.new("Square"),
-        HealthBar = Drawing.new("Square"),
-        Tracer = Drawing.new("Line"),
-    }
+    local drawings = nil
+    pcall(function()
+        drawings = {
+            BoxOutline = Drawing.new("Square"),
+            Box = Drawing.new("Square"),
+            Name = Drawing.new("Text"),
+            Distance = Drawing.new("Text"),
+            HealthBarOutline = Drawing.new("Square"),
+            HealthBar = Drawing.new("Square"),
+            Tracer = Drawing.new("Line"),
+        }
 
-    -- Box Outline
-    drawings.BoxOutline.Visible = false
-    drawings.BoxOutline.Color = Color3.fromRGB(0, 0, 0)
-    drawings.BoxOutline.Thickness = 3
-    drawings.BoxOutline.Filled = false
-    drawings.BoxOutline.Transparency = 1
+        -- Box Outline
+        drawings.BoxOutline.Visible = false
+        drawings.BoxOutline.Color = Color3.fromRGB(0, 0, 0)
+        drawings.BoxOutline.Thickness = 3
+        drawings.BoxOutline.Filled = false
+        drawings.BoxOutline.Transparency = 1
 
-    -- Box
-    drawings.Box.Visible = false
-    drawings.Box.Color = Color3.fromRGB(255, 255, 255)
-    drawings.Box.Thickness = 1
-    drawings.Box.Filled = false
-    drawings.Box.Transparency = 1
+        -- Box
+        drawings.Box.Visible = false
+        drawings.Box.Color = Color3.fromRGB(255, 255, 255)
+        drawings.Box.Thickness = 1
+        drawings.Box.Filled = false
+        drawings.Box.Transparency = 1
 
-    -- Name
-    drawings.Name.Visible = false
-    drawings.Name.Color = Color3.fromRGB(255, 255, 255)
-    drawings.Name.Size = 13
-    drawings.Name.Center = true
-    drawings.Name.Outline = true
-    drawings.Name.OutlineColor = Color3.fromRGB(0, 0, 0)
+        -- Name
+        drawings.Name.Visible = false
+        drawings.Name.Color = Color3.fromRGB(255, 255, 255)
+        drawings.Name.Size = 13
+        drawings.Name.Center = true
+        drawings.Name.Outline = true
+        drawings.Name.OutlineColor = Color3.fromRGB(0, 0, 0)
 
-    -- Distance
-    drawings.Distance.Visible = false
-    drawings.Distance.Color = Color3.fromRGB(200, 200, 200)
-    drawings.Distance.Size = 11
-    drawings.Distance.Center = true
-    drawings.Distance.Outline = true
-    drawings.Distance.OutlineColor = Color3.fromRGB(0, 0, 0)
+        -- Distance
+        drawings.Distance.Visible = false
+        drawings.Distance.Color = Color3.fromRGB(200, 200, 200)
+        drawings.Distance.Size = 11
+        drawings.Distance.Center = true
+        drawings.Distance.Outline = true
+        drawings.Distance.OutlineColor = Color3.fromRGB(0, 0, 0)
 
-    -- Health Bar Outline
-    drawings.HealthBarOutline.Visible = false
-    drawings.HealthBarOutline.Color = Color3.fromRGB(0, 0, 0)
-    drawings.HealthBarOutline.Thickness = 1
-    drawings.HealthBarOutline.Filled = true
-    drawings.HealthBarOutline.Transparency = 1
+        -- Health Bar Outline
+        drawings.HealthBarOutline.Visible = false
+        drawings.HealthBarOutline.Color = Color3.fromRGB(0, 0, 0)
+        drawings.HealthBarOutline.Thickness = 1
+        drawings.HealthBarOutline.Filled = true
+        drawings.HealthBarOutline.Transparency = 1
 
-    -- Health Bar
-    drawings.HealthBar.Visible = false
-    drawings.HealthBar.Color = Color3.fromRGB(0, 255, 0)
-    drawings.HealthBar.Thickness = 1
-    drawings.HealthBar.Filled = true
-    drawings.HealthBar.Transparency = 1
+        -- Health Bar
+        drawings.HealthBar.Visible = false
+        drawings.HealthBar.Color = Color3.fromRGB(0, 255, 0)
+        drawings.HealthBar.Thickness = 1
+        drawings.HealthBar.Filled = true
+        drawings.HealthBar.Transparency = 1
 
-    -- Tracer
-    drawings.Tracer.Visible = false
-    drawings.Tracer.Color = Color3.fromRGB(255, 255, 255)
-    drawings.Tracer.Thickness = 1
-    drawings.Tracer.Transparency = 1
+        -- Tracer
+        drawings.Tracer.Visible = false
+        drawings.Tracer.Color = Color3.fromRGB(255, 255, 255)
+        drawings.Tracer.Thickness = 1
+        drawings.Tracer.Transparency = 1
+    end)
 
     return drawings
 end

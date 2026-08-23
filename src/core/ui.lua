@@ -1,7 +1,7 @@
 --[[
     Quantum Hub - Built-in Modern UI Library
     Fully self-contained, executor-compatible (Solara, Wave, Celery, Synapse Z, Delta)
-    Supports: Draggable Window, Tabs, Toggles, Sliders, Dropdowns, Inputs, Buttons, Colorpickers, and Keybind toggle.
+    Supports: Draggable Window, Floating Toggle Button, Tabs, Toggles, Sliders, Dropdowns, Inputs, Buttons, Colorpickers, Keybinds.
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -16,6 +16,7 @@ local Notifications = require(script.Parent.notifications)
 local UI = {
     ScreenGui = nil,
     MainFrame = nil,
+    FloatingToggle = nil,
     TabButtonsContainer = nil,
     TabPagesContainer = nil,
     Tabs = {},
@@ -23,15 +24,27 @@ local UI = {
     IsVisible = true
 }
 
--- Safe Parent Getter (CoreGui or PlayerGui)
+-- Safe Parent Resolver for Executor Compatibility
 local function GetGuiParent()
-    local success, _ = pcall(function()
-        return CoreGui.Name
+    if gethui then
+        local success, hui = pcall(gethui)
+        if success and hui then return hui end
+    end
+
+    local canUseCoreGui = false
+    pcall(function()
+        local test = Instance.new("Folder")
+        test.Parent = CoreGui
+        test:Destroy()
+        canUseCoreGui = true
     end)
-    if success then
+
+    if canUseCoreGui then
         return CoreGui
     end
-    return Players.LocalPlayer:WaitForChild("PlayerGui")
+
+    local lp = Players.LocalPlayer or Players.PlayerAdded:Wait()
+    return lp:WaitForChild("PlayerGui", 10) or CoreGui
 end
 
 -- Make GUI Object Draggable
@@ -77,100 +90,135 @@ function UI.Init(hubTitle, hubSubtitle)
     hubTitle = hubTitle or "Quantum Hub"
     hubSubtitle = hubSubtitle or ("v1.0.0 | " .. Utils.GetExecutor())
 
-    -- Remove existing GUI instance if present
     local parent = GetGuiParent()
-    local oldGui = parent:FindFirstChild("QuantumHubGui")
-    if oldGui then
-        oldGui:Destroy()
-    end
+    
+    -- Cleanup any existing instance
+    local existing = parent:FindFirstChild("QuantumHubGui")
+    if existing then existing:Destroy() end
 
     -- Create ScreenGui
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "QuantumHubGui"
     screenGui.ResetOnSpawn = false
+    screenGui.DisplayOrder = 999999
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.Enabled = true
+
+    if syn and syn.protect_gui then
+        pcall(function() syn.protect_gui(screenGui) end)
+    end
+
     screenGui.Parent = parent
     UI.ScreenGui = screenGui
 
     -- Main Container Frame
     local main = Instance.new("Frame")
     main.Name = "MainFrame"
-    main.Size = UDim2.new(0, 620, 0, 440)
-    main.Position = UDim2.new(0.5, -310, 0.5, -220)
-    main.BackgroundColor3 = Color3.fromRGB(18, 19, 23)
+    main.Size = UDim2.new(0, 600, 0, 420)
+    main.Position = UDim2.new(0.5, -300, 0.5, -210)
+    main.BackgroundColor3 = Color3.fromRGB(20, 21, 27)
     main.BorderSizePixel = 0
     main.ClipsDescendants = true
+    main.Visible = true
     main.Parent = screenGui
     UI.MainFrame = main
 
     local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 10)
+    mainCorner.CornerRadius = UDim.new(0, 8)
     mainCorner.Parent = main
 
     local mainStroke = Instance.new("UIStroke")
-    mainStroke.Color = Color3.fromRGB(45, 48, 58)
-    mainStroke.Thickness = 1.2
+    mainStroke.Color = Color3.fromRGB(0, 180, 255)
+    mainStroke.Thickness = 1
+    mainStroke.Transparency = 0.4
     mainStroke.Parent = main
 
-    -- Topbar (Title & Drag Handle)
+    -- Topbar
     local topbar = Instance.new("Frame")
     topbar.Name = "Topbar"
-    topbar.Size = UDim2.new(1, 0, 0, 45)
-    topbar.BackgroundColor3 = Color3.fromRGB(24, 25, 32)
+    topbar.Size = UDim2.new(1, 0, 0, 42)
+    topbar.BackgroundColor3 = Color3.fromRGB(26, 28, 36)
     topbar.BorderSizePixel = 0
     topbar.Parent = main
     MakeDraggable(main, topbar)
 
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
-    titleLabel.Size = UDim2.new(0, 200, 1, 0)
-    titleLabel.Position = UDim2.new(0, 16, 0, 0)
+    titleLabel.Size = UDim2.new(0, 190, 1, 0)
+    titleLabel.Position = UDim2.new(0, 14, 0, 0)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.Text = "⚡ " .. hubTitle
     titleLabel.TextColor3 = Color3.fromRGB(0, 210, 255)
-    titleLabel.TextSize = 16
+    titleLabel.TextSize = 15
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = topbar
 
     local subtitleLabel = Instance.new("TextLabel")
     subtitleLabel.Name = "Subtitle"
-    subtitleLabel.Size = UDim2.new(0, 220, 1, 0)
-    subtitleLabel.Position = UDim2.new(0, 160, 0, 0)
+    subtitleLabel.Size = UDim2.new(0, 200, 1, 0)
+    subtitleLabel.Position = UDim2.new(0, 180, 0, 0)
     subtitleLabel.BackgroundTransparency = 1
     subtitleLabel.Font = Enum.Font.Gotham
     subtitleLabel.Text = hubSubtitle
     subtitleLabel.TextColor3 = Color3.fromRGB(140, 145, 160)
-    subtitleLabel.TextSize = 12
+    subtitleLabel.TextSize = 11
     subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     subtitleLabel.Parent = topbar
 
-    -- Close / Minimize Button
+    -- Minimize Button
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "CloseBtn"
-    closeBtn.Size = UDim2.new(0, 30, 0, 30)
-    closeBtn.Position = UDim2.new(1, -38, 0, 7)
-    closeBtn.BackgroundColor3 = Color3.fromRGB(35, 37, 46)
-    closeBtn.Text = "✕"
-    closeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    closeBtn.Size = UDim2.new(0, 28, 0, 28)
+    closeBtn.Position = UDim2.new(1, -34, 0, 7)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(38, 41, 52)
+    closeBtn.Text = "—"
+    closeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
     closeBtn.Font = Enum.Font.GothamBold
     closeBtn.TextSize = 14
     closeBtn.Parent = topbar
 
     local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(0, 6)
+    closeCorner.CornerRadius = UDim.new(0, 5)
     closeCorner.Parent = closeBtn
 
     closeBtn.MouseButton1Click:Connect(function()
         UI.Toggle()
     end)
 
+    -- Floating Open/Close Toggle Button (always visible on screen)
+    local floatToggle = Instance.new("TextButton")
+    floatToggle.Name = "FloatingToggle"
+    floatToggle.Size = UDim2.new(0, 120, 0, 32)
+    floatToggle.Position = UDim2.new(0, 20, 0, 20)
+    floatToggle.BackgroundColor3 = Color3.fromRGB(24, 26, 34)
+    floatToggle.Font = Enum.Font.GothamBold
+    floatToggle.Text = "⚡ Quantum Hub"
+    floatToggle.TextColor3 = Color3.fromRGB(0, 210, 255)
+    floatToggle.TextSize = 12
+    floatToggle.Parent = screenGui
+    MakeDraggable(floatToggle, floatToggle)
+    UI.FloatingToggle = floatToggle
+
+    local ftCorner = Instance.new("UICorner")
+    ftCorner.CornerRadius = UDim.new(0, 6)
+    ftCorner.Parent = floatToggle
+
+    local ftStroke = Instance.new("UIStroke")
+    ftStroke.Color = Color3.fromRGB(0, 180, 255)
+    ftStroke.Thickness = 1
+    ftStroke.Parent = floatToggle
+
+    floatToggle.MouseButton1Click:Connect(function()
+        UI.Toggle()
+    end)
+
     -- Sidebar for Tabs
     local sidebar = Instance.new("ScrollingFrame")
     sidebar.Name = "Sidebar"
-    sidebar.Size = UDim2.new(0, 150, 1, -45)
-    sidebar.Position = UDim2.new(0, 0, 0, 45)
-    sidebar.BackgroundColor3 = Color3.fromRGB(22, 23, 29)
+    sidebar.Size = UDim2.new(0, 140, 1, -42)
+    sidebar.Position = UDim2.new(0, 0, 0, 42)
+    sidebar.BackgroundColor3 = Color3.fromRGB(23, 24, 31)
     sidebar.BorderSizePixel = 0
     sidebar.ScrollBarThickness = 2
     sidebar.ScrollBarImageColor3 = Color3.fromRGB(60, 65, 80)
@@ -195,13 +243,13 @@ function UI.Init(hubTitle, hubSubtitle)
     -- Pages Container
     local pages = Instance.new("Frame")
     pages.Name = "Pages"
-    pages.Size = UDim2.new(1, -150, 1, -45)
-    pages.Position = UDim2.new(0, 150, 0, 45)
+    pages.Size = UDim2.new(1, -140, 1, -42)
+    pages.Position = UDim2.new(0, 140, 0, 42)
     pages.BackgroundTransparency = 1
     pages.Parent = main
     UI.TabPagesContainer = pages
 
-    -- Add Notification In-Game Overlay handler
+    -- Notification helper
     getgenv().HubNotify = function(options)
         Notifications.Send(options.Title or "Hub", options.Content or "", options.Duration or 4)
     end
@@ -225,6 +273,7 @@ function UI.Init(hubTitle, hubSubtitle)
     UI.BuildStandardUI()
     UI.SelectTab(UI.Tabs.Home)
 
+    print("[Quantum Hub] UI initialized successfully!")
     return UI
 end
 
@@ -241,7 +290,7 @@ function UI.SelectTab(tabObj)
         if otherTab and otherTab.Page and otherTab.Button then
             otherTab.Page.Visible = (otherTab == tabObj)
             if otherTab == tabObj then
-                otherTab.Button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+                otherTab.Button.BackgroundColor3 = Color3.fromRGB(0, 160, 240)
                 otherTab.Button.TextColor3 = Color3.fromRGB(255, 255, 255)
             else
                 otherTab.Button.BackgroundColor3 = Color3.fromRGB(28, 30, 38)
@@ -257,12 +306,12 @@ function UI.CreateTab(name)
     -- Tab Button
     local btn = Instance.new("TextButton")
     btn.Name = "Tab_" .. name
-    btn.Size = UDim2.new(1, -4, 0, 34)
+    btn.Size = UDim2.new(1, -4, 0, 32)
     btn.BackgroundColor3 = Color3.fromRGB(28, 30, 38)
     btn.Font = Enum.Font.GothamSemibold
     btn.Text = name
     btn.TextColor3 = Color3.fromRGB(160, 165, 180)
-    btn.TextSize = 13
+    btn.TextSize = 12
     btn.Parent = UI.TabButtonsContainer
 
     local btnCorner = Instance.new("UICorner")
@@ -289,23 +338,23 @@ function UI.CreateTab(name)
     tab.Page = page
 
     local pageLayout = Instance.new("UIListLayout")
-    pageLayout.Padding = UDim.new(0, 8)
+    pageLayout.Padding = UDim.new(0, 6)
     pageLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
     pageLayout.Parent = page
 
     local pagePadding = Instance.new("UIPadding")
-    pagePadding.PaddingTop = UDim.new(0, 12)
-    pagePadding.PaddingBottom = UDim.new(0, 12)
-    pagePadding.PaddingLeft = UDim.new(0, 12)
-    pagePadding.PaddingRight = UDim.new(0, 12)
+    pagePadding.PaddingTop = UDim.new(0, 10)
+    pagePadding.PaddingBottom = UDim.new(0, 10)
+    pagePadding.PaddingLeft = UDim.new(0, 10)
+    pagePadding.PaddingRight = UDim.new(0, 10)
     pagePadding.Parent = page
 
-    -- Tab Component Builders
+    -- Tab Components
     function tab:AddParagraph(options)
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, -6, 0, 56)
-        frame.BackgroundColor3 = Color3.fromRGB(25, 27, 35)
+        frame.Size = UDim2.new(1, -4, 0, 52)
+        frame.BackgroundColor3 = Color3.fromRGB(26, 28, 36)
         frame.Parent = page
 
         local c = Instance.new("UICorner")
@@ -313,19 +362,19 @@ function UI.CreateTab(name)
         c.Parent = frame
 
         local title = Instance.new("TextLabel")
-        title.Size = UDim2.new(1, -16, 0, 20)
-        title.Position = UDim2.new(0, 8, 0, 6)
+        title.Size = UDim2.new(1, -16, 0, 18)
+        title.Position = UDim2.new(0, 8, 0, 5)
         title.BackgroundTransparency = 1
         title.Font = Enum.Font.GothamBold
         title.Text = options.Title or ""
         title.TextColor3 = Color3.fromRGB(0, 200, 255)
-        title.TextSize = 13
+        title.TextSize = 12
         title.TextXAlignment = Enum.TextXAlignment.Left
         title.Parent = frame
 
         local desc = Instance.new("TextLabel")
         desc.Size = UDim2.new(1, -16, 0, 24)
-        desc.Position = UDim2.new(0, 8, 0, 26)
+        desc.Position = UDim2.new(0, 8, 0, 24)
         desc.BackgroundTransparency = 1
         desc.Font = Enum.Font.Gotham
         desc.Text = options.Content or options.Description or ""
@@ -339,7 +388,7 @@ function UI.CreateTab(name)
 
     function tab:AddToggle(id, options)
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, -6, 0, 40)
+        frame.Size = UDim2.new(1, -4, 0, 36)
         frame.BackgroundColor3 = Color3.fromRGB(26, 28, 36)
         frame.Parent = page
 
@@ -348,28 +397,28 @@ function UI.CreateTab(name)
         c.Parent = frame
 
         local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1, -60, 1, 0)
+        label.Size = UDim2.new(1, -55, 1, 0)
         label.Position = UDim2.new(0, 10, 0, 0)
         label.BackgroundTransparency = 1
         label.Font = Enum.Font.GothamSemibold
         label.Text = options.Title or id
         label.TextColor3 = Color3.fromRGB(220, 225, 235)
-        label.TextSize = 13
+        label.TextSize = 12
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = frame
 
         local toggleBtn = Instance.new("TextButton")
-        toggleBtn.Size = UDim2.new(0, 42, 0, 22)
-        toggleBtn.Position = UDim2.new(1, -50, 0.5, -11)
+        toggleBtn.Size = UDim2.new(0, 38, 0, 20)
+        toggleBtn.Position = UDim2.new(1, -46, 0.5, -10)
         toggleBtn.BackgroundColor3 = options.Default and Color3.fromRGB(0, 190, 255) or Color3.fromRGB(45, 48, 60)
         toggleBtn.Text = options.Default and "ON" or "OFF"
         toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         toggleBtn.Font = Enum.Font.GothamBold
-        toggleBtn.TextSize = 10
+        toggleBtn.TextSize = 9
         toggleBtn.Parent = frame
 
         local tbCorner = Instance.new("UICorner")
-        tbCorner.CornerRadius = UDim.new(0, 11)
+        tbCorner.CornerRadius = UDim.new(0, 10)
         tbCorner.Parent = toggleBtn
 
         local isToggled = options.Default or false
@@ -387,12 +436,12 @@ function UI.CreateTab(name)
 
     function tab:AddButton(options)
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, -6, 0, 36)
+        btn.Size = UDim2.new(1, -4, 0, 34)
         btn.BackgroundColor3 = Color3.fromRGB(32, 35, 46)
         btn.Font = Enum.Font.GothamSemibold
         btn.Text = options.Title or "Button"
         btn.TextColor3 = Color3.fromRGB(220, 230, 250)
-        btn.TextSize = 13
+        btn.TextSize = 12
         btn.Parent = page
 
         local c = Instance.new("UICorner")
@@ -419,7 +468,7 @@ function UI.CreateTab(name)
         local currentVal = options.Default or minVal
 
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, -6, 0, 50)
+        frame.Size = UDim2.new(1, -4, 0, 48)
         frame.BackgroundColor3 = Color3.fromRGB(26, 28, 36)
         frame.Parent = page
 
@@ -428,7 +477,7 @@ function UI.CreateTab(name)
         c.Parent = frame
 
         local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1, -70, 0, 22)
+        label.Size = UDim2.new(1, -60, 0, 20)
         label.Position = UDim2.new(0, 10, 0, 4)
         label.BackgroundTransparency = 1
         label.Font = Enum.Font.GothamSemibold
@@ -439,8 +488,8 @@ function UI.CreateTab(name)
         label.Parent = frame
 
         local valueLabel = Instance.new("TextLabel")
-        valueLabel.Size = UDim2.new(0, 50, 0, 22)
-        valueLabel.Position = UDim2.new(1, -60, 0, 4)
+        valueLabel.Size = UDim2.new(0, 45, 0, 20)
+        valueLabel.Position = UDim2.new(1, -55, 0, 4)
         valueLabel.BackgroundTransparency = 1
         valueLabel.Font = Enum.Font.GothamBold
         valueLabel.Text = tostring(currentVal)
@@ -450,13 +499,13 @@ function UI.CreateTab(name)
         valueLabel.Parent = frame
 
         local barBg = Instance.new("Frame")
-        barBg.Size = UDim2.new(1, -20, 0, 8)
-        barBg.Position = UDim2.new(0, 10, 0, 32)
+        barBg.Size = UDim2.new(1, -20, 0, 6)
+        barBg.Position = UDim2.new(0, 10, 0, 30)
         barBg.BackgroundColor3 = Color3.fromRGB(40, 43, 56)
         barBg.Parent = frame
 
         local barCorner = Instance.new("UICorner")
-        barCorner.CornerRadius = UDim.new(0, 4)
+        barCorner.CornerRadius = UDim.new(0, 3)
         barCorner.Parent = barBg
 
         local fill = Instance.new("Frame")
@@ -467,7 +516,7 @@ function UI.CreateTab(name)
         fill.Parent = barBg
 
         local fillCorner = Instance.new("UICorner")
-        fillCorner.CornerRadius = UDim.new(0, 4)
+        fillCorner.CornerRadius = UDim.new(0, 3)
         fillCorner.Parent = fill
 
         local dragging = false
@@ -505,7 +554,7 @@ function UI.CreateTab(name)
 
     function tab:AddDropdown(id, options)
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, -6, 0, 40)
+        frame.Size = UDim2.new(1, -4, 0, 36)
         frame.BackgroundColor3 = Color3.fromRGB(26, 28, 36)
         frame.Parent = page
 
@@ -514,7 +563,7 @@ function UI.CreateTab(name)
         c.Parent = frame
 
         local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(0, 140, 1, 0)
+        label.Size = UDim2.new(0, 130, 1, 0)
         label.Position = UDim2.new(0, 10, 0, 0)
         label.BackgroundTransparency = 1
         label.Font = Enum.Font.GothamSemibold
@@ -525,8 +574,8 @@ function UI.CreateTab(name)
         label.Parent = frame
 
         local cycleBtn = Instance.new("TextButton")
-        cycleBtn.Size = UDim2.new(1, -160, 0, 26)
-        cycleBtn.Position = UDim2.new(0, 150, 0.5, -13)
+        cycleBtn.Size = UDim2.new(1, -150, 0, 24)
+        cycleBtn.Position = UDim2.new(0, 140, 0.5, -12)
         cycleBtn.BackgroundColor3 = Color3.fromRGB(38, 42, 54)
         cycleBtn.Font = Enum.Font.Gotham
         cycleBtn.Text = tostring(options.Default or options.Values[1])
@@ -557,7 +606,7 @@ function UI.CreateTab(name)
 
     function tab:AddInput(id, options)
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, -6, 0, 40)
+        frame.Size = UDim2.new(1, -4, 0, 36)
         frame.BackgroundColor3 = Color3.fromRGB(26, 28, 36)
         frame.Parent = page
 
@@ -566,7 +615,7 @@ function UI.CreateTab(name)
         c.Parent = frame
 
         local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(0, 130, 1, 0)
+        label.Size = UDim2.new(0, 120, 1, 0)
         label.Position = UDim2.new(0, 10, 0, 0)
         label.BackgroundTransparency = 1
         label.Font = Enum.Font.GothamSemibold
@@ -577,8 +626,8 @@ function UI.CreateTab(name)
         label.Parent = frame
 
         local box = Instance.new("TextBox")
-        box.Size = UDim2.new(1, -150, 0, 26)
-        box.Position = UDim2.new(0, 140, 0.5, -13)
+        box.Size = UDim2.new(1, -140, 0, 24)
+        box.Position = UDim2.new(0, 130, 0.5, -12)
         box.BackgroundColor3 = Color3.fromRGB(38, 42, 54)
         box.Font = Enum.Font.Gotham
         box.Text = options.Default or ""
@@ -602,7 +651,7 @@ function UI.CreateTab(name)
 
     function tab:AddColorpicker(id, options)
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, -6, 0, 40)
+        frame.Size = UDim2.new(1, -4, 0, 36)
         frame.BackgroundColor3 = Color3.fromRGB(26, 28, 36)
         frame.Parent = page
 
@@ -611,7 +660,7 @@ function UI.CreateTab(name)
         c.Parent = frame
 
         local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1, -60, 1, 0)
+        label.Size = UDim2.new(1, -55, 1, 0)
         label.Position = UDim2.new(0, 10, 0, 0)
         label.BackgroundTransparency = 1
         label.Font = Enum.Font.GothamSemibold
@@ -622,8 +671,8 @@ function UI.CreateTab(name)
         label.Parent = frame
 
         local colorBtn = Instance.new("TextButton")
-        colorBtn.Size = UDim2.new(0, 34, 0, 22)
-        colorBtn.Position = UDim2.new(1, -44, 0.5, -11)
+        colorBtn.Size = UDim2.new(0, 30, 0, 20)
+        colorBtn.Position = UDim2.new(1, -40, 0.5, -10)
         colorBtn.BackgroundColor3 = options.Default or Color3.fromRGB(255, 60, 60)
         colorBtn.Text = ""
         colorBtn.Parent = frame
@@ -670,8 +719,8 @@ function UI.BuildStandardUI()
     -- HOME TAB
     ----------------------------------------------------------------------
     tabs.Home:AddParagraph({
-        Title = "Welcome to " .. "Quantum Script Hub",
-        Description = "Place ID: " .. tostring(game.PlaceId) .. " | Executor: " .. Utils.GetExecutor() .. "\nPress [Right-Control] to hide or show this menu."
+        Title = "Quantum Script Hub",
+        Description = "Place ID: " .. tostring(game.PlaceId) .. " | " .. Utils.GetExecutor() .. "\nClick [⚡ Quantum Hub] button or press [Right-Ctrl] to hide."
     })
 
     tabs.Home:AddButton({
