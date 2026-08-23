@@ -1,0 +1,20 @@
+{
+  "name": "roblox-script-hub",
+  "version": "1.0.0",
+  "description": "Modular, high-performance Roblox Luau Script Hub with universal exploits, game detection, and build tools",
+  "main": "src/init.lua",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js --watch"
+  },
+  "keywords": [
+    "roblox",
+    "script-hub",
+    "luau",
+    "executor",
+    "esp",
+    "aimbot"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,41 @@
+{
+  "languageMode": "nonstrict",
+  "lint": {
+    "UnknownGlobal": false,
+    "ImplicitReturn": false
+  },
+  "globals": [
+    "game",
+    "workspace",
+    "script",
+    "Instance",
+    "Vector3",
+    "Vector2",
+    "CFrame",
+    "Color3",
+    "UDim2",
+    "UDim",
+    "Ray",
+    "RaycastParams",
+    "task",
+    "Drawing",
+    "syn",
+    "getgenv",
+    "identifyexecutor",
+    "hookmetamethod",
+    "getnamecallmethod",
+    "newcclosure",
+    "checkcaller",
+    "readfile",
+    "writefile",
+    "isfile",
+    "isfolder",
+    "makefolder",
+    "delfolder",
+    "delfile",
+    "setclipboard",
+    "queue_on_teleport",
+    "request",
+    "http_request"
+  ]
+}
