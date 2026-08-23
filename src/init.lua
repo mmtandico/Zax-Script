@@ -3,14 +3,9 @@
     Initializes core services, modules, game router, and user interface.
 ]]
 
--- Prevent duplicate execution
-if getgenv and getgenv().RobloxScriptHubLoaded then
-    warn("[Script Hub] Already executed!")
-    return
-end
-
-if getgenv then
-    getgenv().RobloxScriptHubLoaded = true
+-- Cleanup previous execution instance if exists
+if getgenv and getgenv().QuantumHubCleanup then
+    pcall(getgenv().QuantumHubCleanup)
 end
 
 -- Core Dependencies
@@ -40,13 +35,15 @@ function Hub.Start()
     print(string.format("[%s] Initializing %s (v%s) on %s...", Hub.Name, Hub.Name, Hub.Version, Utils.GetExecutor()))
 
     -- 1. Initialize Configuration
-    Config.Init("QuantumHub")
+    pcall(function()
+        Config.Init("QuantumHub")
+    end)
 
-    -- 2. Initialize Core Feature Modules
-    Visuals.Init()
-    Combat.Init()
-    Movement.Init()
-    Utility.Init()
+    -- 2. Initialize Core Feature Modules safely
+    pcall(function() Visuals.Init() end)
+    pcall(function() Combat.Init() end)
+    pcall(function() Movement.Init() end)
+    pcall(function() Utility.Init() end)
 
     -- 3. Initialize User Interface
     local uiInstance = UI.Init(Hub.Name, "v" .. Hub.Version .. " | " .. Utils.GetExecutor())
@@ -62,13 +59,28 @@ function Hub.Start()
         end)
 
         if success and mod and mod.Init then
-            mod.Init(uiInstance, Config, Notifications)
+            pcall(function()
+                mod.Init(uiInstance, Config, Notifications)
+            end)
             print(string.format("[%s] Loaded game module for PlaceId: %s", Hub.Name, tostring(placeId)))
         end
     end
 
+    -- Register global cleanup
+    if getgenv then
+        getgenv().QuantumHubCleanup = function()
+            pcall(function() Visuals.Cleanup() end)
+            pcall(function() Combat.Cleanup() end)
+            pcall(function() Movement.Cleanup() end)
+            pcall(function() Utility.Cleanup() end)
+            if UI.ScreenGui then
+                UI.ScreenGui:Destroy()
+            end
+        end
+    end
+
     -- 5. Welcome Notification
-    Notifications.Success("Quantum Hub successfully loaded!", 5)
+    Notifications.Success("Quantum Hub successfully loaded!", 4)
 end
 
 -- Start Hub
