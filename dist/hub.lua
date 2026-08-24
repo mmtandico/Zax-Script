@@ -1,6 +1,6 @@
 --[[
     Zxscript - Bundled Standalone Distribution
-    Generated: 2026-08-24T10:38:26.897Z
+    Generated: 2026-08-24T10:42:13.736Z
 ]]
 
 local __modules = {}
@@ -1129,10 +1129,15 @@ __modules["games/10563114921"] = function()
         timestamp = timestamp or os.time()
         local dateTable = os.date("*t", timestamp)
         local hour = dateTable.hour
+        local min = math.floor((dateTable.min + 2.5) / 5) * 5
+        if min >= 60 then
+            min = 0
+            hour = (hour + 1) % 24
+        end
         local ampm = hour >= 12 and "PM" or "AM"
         hour = hour % 12
         if hour == 0 then hour = 12 end
-        return string.format("%02d:%02d:%02d %s", hour, dateTable.min, dateTable.sec, ampm)
+        return string.format("%02d:%02d %s", hour, min, ampm)
     end
     
     StealAnEgg.EggZones = {
@@ -1503,28 +1508,7 @@ __modules["games/10563114921"] = function()
                     end
                 end
             end
-        end)
-        -- 5-Min Day/Night Cycle Tracker Loop
-        local cycleLoop = RunService.Heartbeat:Connect(function()
-            local clockTime = Lighting.ClockTime
-            local isNight = clockTime < 6 or clockTime > 18
-            local nowSec = math.floor(os.time())
-            local cycleSec = nowSec % 300
-            local nextNightIn = isNight and (300 - cycleSec) or (180 - cycleSec)
-    
-            if StealAnEgg.HUDCountdownLabel then
-                pcall(function()
-                    StealAnEgg.HUDCountdownLabel.Text = string.format(
-                        "%s %s | Next Night Wave: %02dm %02ds",
-                        isNight and "🌙" or "☀️",
-                        isNight and "NIGHT PHASE" or "DAY PHASE",
-                        math.floor(nextNightIn / 60),
-                        nextNightIn % 60
-                    )
-                end)
-            end
-        end)
-        table.insert(StealAnEgg.Connections, cycleLoop)
+        table.insert(StealAnEgg.Connections, collectLoop)
     
         -- Initial Workspace Scan
         StealAnEgg.ScanWorkspace(Notifications)

@@ -84,23 +84,7 @@ body {
     font-size: 12px;
 }
 
-/* 5-MINUTE DAY/NIGHT BAR */
-.day-night-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px 16px;
-    background: rgba(0, 255, 255, 0.08);
-    border: 1px solid rgba(0, 255, 255, 0.2);
-    border-radius: 10px;
-    font-size: 14px;
-}
 
-.cycle-timer {
-    color: #ffd700;
-    font-weight: 700;
-}
 
 /* MAIN PREDICTOR CARD */
 .predictor-card {

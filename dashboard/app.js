@@ -1,16 +1,12 @@
 /**
  * Steal an Egg - Real-Time Egg Spawn Predictor Application Logic
- * Aligned with in-game 5-Minute (300-Second) Day/Night Cycle mechanics.
+ * Clean 5-Minute Clock Boundary Formatter (no odd minutes like 7:07 pm).
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     let soundEnabled = true;
 
     // DOM Elements
-    const cyclePhaseIcon = document.getElementById('cyclePhaseIcon');
-    const cyclePhaseText = document.getElementById('cyclePhaseText');
-    const cycleTimerText = document.getElementById('cycleTimerText');
-
     const nextUpName = document.getElementById('nextUpName');
     const nextUpZone = document.getElementById('nextUpZone');
     const nextUpTime = document.getElementById('nextUpTime');
@@ -21,9 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const divineList = document.getElementById('divineList');
     const soundToggleBtn = document.getElementById('soundToggleBtn');
 
+    // 12-Hour AM/PM Time Formatter (Rounds to clean 5-minute clock boundaries: e.g., "6:30 pm", "8:10 pm", "8:25 pm", "12:05 am")
     function format12HourTime(date) {
         let hours = date.getHours();
         let minutes = date.getMinutes();
+        
+        // Round to nearest 5-minute clock boundary
+        minutes = Math.round(minutes / 5) * 5;
+        if (minutes >= 60) {
+            minutes = 0;
+            hours = (hours + 1) % 24;
+        }
+
         const ampm = hours >= 12 ? 'pm' : 'am';
         hours = hours % 12;
         hours = hours ? hours : 12;
@@ -31,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${hours}:${strMinutes} ${ampm}`;
     }
 
+    // Relative Time Formatter (e.g., "in 13 minutes", "in 2 hours", "in 6 hours")
     function formatRelativeTime(seconds) {
         if (seconds <= 60) return 'in 1 minute';
         const mins = Math.floor(seconds / 60);
@@ -40,12 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const hours = Math.floor(mins / 60);
         if (hours === 1) return 'in 1 hour';
         return `in ${hours} hours`;
-    }
-
-    function formatMinsSecs(seconds) {
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
     }
 
     // Official Steal an Egg Zone & Egg Database
@@ -78,23 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function updatePredictor() {
         const nowMs = Date.now();
         const nowSec = Math.floor(nowMs / 1000);
-
-        // 5-Minute (300s) Day/Night Cycle Status
-        const cycleSec = nowSec % 300;
-        const isNight = cycleSec >= 180; // Night phase starts at 3m (180s)
-        const nextNightIn = isNight ? (300 - cycleSec) : (180 - cycleSec);
-
-        if (cyclePhaseIcon) cyclePhaseIcon.textContent = isNight ? "🌙" : "☀️";
-        if (cyclePhaseText) {
-            cyclePhaseText.innerHTML = isNight 
-                ? 'In-Game Phase: <strong style="color:#dc32ff;">NIGHT SPAWN PHASE ACTIVE</strong>' 
-                : 'In-Game Phase: <strong style="color:#00ffff;">DAY PHASE</strong>';
-        }
-        if (cycleTimerText) {
-            cycleTimerText.textContent = isNight 
-                ? `Night Wave Ends in ${formatMinsSecs(nextNightIn)}` 
-                : `Next Night Spawn Wave in ${formatMinsSecs(nextNightIn)}`;
-        }
 
         let allPredicted = [];
         const tiers = ['Secret', 'Eternal', 'Divine'];
