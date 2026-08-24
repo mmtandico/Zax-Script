@@ -123,6 +123,31 @@ async function refreshRobloxCache() {
         ping: s.ping || 45
     })) : cachedRobloxStatus.servers;
 
+let lastLiveSpawn = {
+    name: "Tralaledon",
+    rarity: "Secret",
+    zone: "PREHISTORIC",
+    spawnedAt: new Date().toISOString()
+};
+
+// Background Worker to Poll Roblox API every 4 Seconds
+async function refreshRobloxCache() {
+    const gameInfo = await fetchJson(`https://games.roblox.com/v1/games?universeIds=${UNIVERSE_ID}`);
+    const serverList = await fetchJson(`https://games.roblox.com/v1/games/${PLACE_ID}/servers/Public?limit=10`);
+
+    const gameData = (gameInfo && gameInfo.data && gameInfo.data[0]) ? gameInfo.data[0] : {};
+    const activePlayers = gameData.playing || cachedRobloxStatus.activePlayers;
+    const totalVisits = gameData.visits || cachedRobloxStatus.totalVisits;
+    const gameName = gameData.name || "Steal An Egg";
+
+    const servers = (serverList && serverList.data) ? serverList.data.map(s => ({
+        id: s.id,
+        playing: s.playing,
+        maxPlayers: s.maxPlayers,
+        fps: Math.round(s.fps || 60),
+        ping: s.ping || 45
+    })) : cachedRobloxStatus.servers;
+
     cachedRobloxStatus = {
         success: true,
         gameName,
@@ -133,6 +158,7 @@ async function refreshRobloxCache() {
         totalVisits,
         servers,
         liveGameState,
+        lastLiveSpawn,
         predictions: calculateEggWavePredictions()
     };
 }
@@ -145,19 +171,27 @@ const server = http.createServer((req, res) => {
     const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     let pathname = parsedUrl.pathname;
 
-    // Live In-Game Sync Webhook Endpoint (POST /api/sync-game)
-    if (pathname === '/api/sync-game' && req.method === 'POST') {
+    // Live In-Game Spawn Webhook Endpoint (POST /api/live-spawn)
+    if ((pathname === '/api/live-spawn' || pathname === '/api/sync-game') && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
             try {
                 const data = JSON.parse(body);
-                if (data && data.clockTime) {
-                    liveGameState.serverTimeOfDay = data.clockTime;
-                    liveGameState.isNightPhase = data.isNight || false;
-                    liveGameState.lastSyncTimestamp = Date.now();
+                if (data && data.name) {
+                    lastLiveSpawn = {
+                        name: data.name,
+                        rarity: data.rarity || 'Secret',
+                        zone: data.zone || 'PREHISTORIC',
+                        spawnedAt: new Date().toISOString()
+                    };
                 }
             } catch (e) {}
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ success: true, lastLiveSpawn }));
+        });
+        return;
+    }
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ success: true }));
         });

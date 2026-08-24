@@ -1,6 +1,6 @@
 --[[
     Zxscript - Bundled Standalone Distribution
-    Generated: 2026-08-24T10:42:13.736Z
+    Generated: 2026-08-24T10:46:22.305Z
 ]]
 
 local __modules = {}
@@ -1341,6 +1341,23 @@ __modules["games/10563114921"] = function()
                 })
             end)
         end
+    
+        -- Send Live Webhook to Standalone PC Dashboard Server
+        pcall(function()
+            local requestFn = (syn and syn.request) or (http and http.request) or http_request or request
+            if requestFn then
+                requestFn({
+                    Url = "http://localhost:3000/api/live-spawn",
+                    Method = "POST",
+                    Headers = { ["Content-Type"] = "application/json" },
+                    Body = game:GetService("HttpService"):JSONEncode({
+                        name = model.Name,
+                        rarity = rarity,
+                        zone = StealAnEgg.EggZones[model.Name] or "PREHISTORIC"
+                    })
+                })
+            end
+        end)
     
         -- Create ESP
         if StealAnEgg.EggESP then
