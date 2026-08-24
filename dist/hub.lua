@@ -1,6 +1,6 @@
 --[[
     Zxscript - Bundled Standalone Distribution
-    Generated: 2026-08-24T08:47:56.256Z
+    Generated: 2026-08-24T08:50:37.653Z
 ]]
 
 local __modules = {}
@@ -243,9 +243,9 @@ __modules["core/ui"] = function()
     
     local UserInputService = game:GetService("UserInputService")
     
-    local Utils = require_module("utils")
-    local Config = require_module("config")
-    local Notifications = require_module("notifications")
+    local Utils = require_module("core/utils")
+    local Config = require_module("core/config")
+    local Notifications = require_module("core/notifications")
     
     local UI = {
         Rayfield = nil,

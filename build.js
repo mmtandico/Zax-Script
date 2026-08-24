@@ -37,8 +37,7 @@ function transformModuleSource(source, moduleKey) {
     .replace(/require\(script\.Parent\.Parent\.modules\.([a-zA-Z0-9_]+)\)/g, 'require_module("modules/$1")')
     .replace(/require\(script\.Parent\.([a-zA-Z0-9_]+)\)/g, (match, p1) => {
       const parts = moduleKey.split('/');
-      parts.pop(); // remove file name
-      parts.pop(); // Parent
+      parts.pop(); // remove file name only — script.Parent means same directory
       return `require_module("${parts.join('/')}${parts.length ? '/' : ''}${p1}")`;
     })
     .replace(/require\(script\.core\.([a-zA-Z0-9_]+)\)/g, 'require_module("core/$1")')
