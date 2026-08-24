@@ -1,6 +1,7 @@
 /**
  * Steal an Egg - Ultra-Fast PC Standalone Predictor & Server Tracker
  * Uses background polling cache to guarantee 0ms latency for web requests.
+ * Robust URL pathname handling to prevent 404 errors.
  * UniverseId: 10563114921 | PlaceId: 107778070777162
  */
 
@@ -29,6 +30,7 @@ let cachedRobloxStatus = {
     gameName: "Steal An Egg",
     placeId: PLACE_ID,
     universeId: UNIVERSE_ID,
+    rootPlaceId: PLACE_ID,
     activePlayers: 793084,
     totalVisits: 299751526,
     servers: [],
@@ -81,7 +83,7 @@ function calculateEggWavePredictions() {
     };
 }
 
-// Background Worker to Poll Roblox API every 4 Seconds (Avoids Rate Limiting & Delays)
+// Background Worker to Poll Roblox API every 4 Seconds
 async function refreshRobloxCache() {
     const gameInfo = await fetchJson(`https://games.roblox.com/v1/games?universeIds=${UNIVERSE_ID}`);
     const serverList = await fetchJson(`https://games.roblox.com/v1/games/${PLACE_ID}/servers/Public?limit=10`);
@@ -117,8 +119,12 @@ setInterval(refreshRobloxCache, 4000);
 refreshRobloxCache();
 
 const server = http.createServer((req, res) => {
-    // API Route: Live Roblox Server & Predictor Status (Responds in 0ms from Cache)
-    if (req.url === '/api/roblox-status' || req.url === '/api/inspect') {
+    // Parse URL Pathname cleanly
+    const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    let pathname = parsedUrl.pathname;
+
+    // Handle API Routes
+    if (pathname === '/api/roblox-status' || pathname === '/api/inspect') {
         cachedRobloxStatus.predictions = calculateEggWavePredictions();
 
         res.writeHead(200, { 
@@ -129,20 +135,20 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // Default to index.html for root path
+    if (pathname === '/') {
+        pathname = '/index.html';
+    }
+
     // Static Asset Handler
-    let filePath = path.join(DASHBOARD_DIR, req.url === '/' ? 'index.html' : req.url);
+    let filePath = path.join(DASHBOARD_DIR, pathname);
     let extname = String(path.extname(filePath)).toLowerCase();
     let contentType = MIME_TYPES[extname] || 'application/octet-stream';
 
     fs.readFile(filePath, (error, content) => {
         if (error) {
-            if (error.code === 'ENOENT') {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('<h1>404 Not Found</h1>', 'utf-8');
-            } else {
-                res.writeHead(500);
-                res.end(`Server Error: ${error.code}`, 'utf-8');
-            }
+            res.writeHead(404, { 'Content-Type': 'text/html' });
+            res.end(`<h1>404 Not Found</h1><p>Requested URL: ${pathname}</p>`, 'utf-8');
         } else {
             res.writeHead(200, { 'Content-Type': contentType });
             res.end(content, 'utf-8');
