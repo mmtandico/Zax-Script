@@ -1,14 +1,12 @@
 /**
  * Steal an Egg - Real-Time Egg Spawn Predictor Application Logic
- * Includes Live Server Calibration Button for 100% accurate alignment to active game server.
+ * Automatically calculates 12-hour AM/PM egg spawn predictions.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     let soundEnabled = true;
-    let serverOffsetSec = parseInt(localStorage.getItem('sae_server_offset') || '0', 10);
 
     // DOM Elements
-    const calibrateBtn = document.getElementById('calibrateBtn');
     const nextUpName = document.getElementById('nextUpName');
     const nextUpZone = document.getElementById('nextUpZone');
     const nextUpTime = document.getElementById('nextUpTime');
@@ -78,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updatePredictor() {
         const nowMs = Date.now();
-        const nowSec = Math.floor(nowMs / 1000) - serverOffsetSec;
+        const nowSec = Math.floor(nowMs / 1000);
 
         let allPredicted = [];
         const tiers = ['Secret', 'Eternal', 'Divine'];
@@ -133,27 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (nextUpTime) nextUpTime.textContent = nextUpItem.clockStr;
             if (nextUpRelative) nextUpRelative.textContent = nextUpItem.relStr;
         }
-    }
-
-    // Handle Manual Server Calibration Click
-    if (calibrateBtn) {
-        calibrateBtn.addEventListener('click', () => {
-            // Recalibrate server offset to current timestamp
-            serverOffsetSec = Math.floor(Date.now() / 1000) % 300;
-            localStorage.setItem('sae_server_offset', serverOffsetSec.toString());
-            
-            calibrateBtn.textContent = '✅ SERVER SYNCED!';
-            calibrateBtn.style.background = '#10b981';
-            calibrateBtn.style.color = '#fff';
-
-            updatePredictor();
-
-            setTimeout(() => {
-                calibrateBtn.textContent = '🎯 SYNC TO MY SERVER NOW';
-                calibrateBtn.style.background = 'linear-gradient(135deg, #00e5ff 0%, #0088ff 100%)';
-                calibrateBtn.style.color = '#000';
-            }, 3000);
-        });
     }
 
     setInterval(updatePredictor, 1000);
