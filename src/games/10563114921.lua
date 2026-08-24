@@ -451,12 +451,25 @@ function StealAnEgg.OnEggSpawned(model, Notifications)
         Notifications.Success(string.format("🌟 RARE EGG SPAWNED! [%s Egg]\nLocation: %s", rarity, model.Name), 6)
     end
 
-    -- Auto Teleport to High-Tier Egg (Divine, Secret, Eternal)
+    -- Auto Teleport & Instant FireTouch Steal for High-Tier Eggs (Divine, Secret, Eternal)
     if rank >= 6 and StealAnEgg.AutoTeleportToRare then
-        task.wait(0.1)
+        task.wait(0.05)
         StealAnEgg.TeleportTo(model)
+        
+        -- Instant Steal Trigger
+        local char = LocalPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        local touchPart = model:IsA("Model") and (model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")) or model
+        if root and touchPart then
+            pcall(function()
+                firetouchinterest(root, touchPart, 0)
+                task.wait(0.02)
+                firetouchinterest(root, touchPart, 1)
+            end)
+        end
+
         if Notifications then
-            Notifications.Info(string.format("⚡ Auto-Teleported to [%s Egg]!", rarity))
+            Notifications.Info(string.format("⚡ Auto-Teleported & Claimed [%s Egg]!", rarity))
         end
     end
 end
@@ -526,8 +539,8 @@ function StealAnEgg.Init(UI, Config, Notifications)
     })
 
     gameTab:AddToggle("SAEAutoTPRare", {
-        Title = "Auto-Teleport to Rare Egg Spawns (Divine+)",
-        Default = false,
+        Title = "Auto-Teleport & Instant Steal Rare Eggs (Divine+)",
+        Default = true,
         Callback = function(val)
             StealAnEgg.AutoTeleportToRare = val
         end
