@@ -1,5 +1,5 @@
 --[[
-    Steal an Egg Module (PlaceId: 107778070777162)
+    Steal an Egg Module (PlaceId: 10563114921)
     Game-specific features for Steal an Egg.
 ]]
 
@@ -16,7 +16,7 @@ function StealAnEgg.Init(UI, Config, Notifications)
 
     gameTab:AddParagraph({
         Title = "Steal an Egg Module Active",
-        Content = "PlaceId: 107778070777162\nCustom features specifically tailored for Steal an Egg."
+        Content = "PlaceId: 10563114921\nCustom features specifically tailored for Steal an Egg."
     })
 
     gameTab:AddToggle("SAEAutoCollect", {

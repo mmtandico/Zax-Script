@@ -1,6 +1,6 @@
 --[[
     Zxscript - Bundled Standalone Distribution
-    Generated: 2026-08-24T08:50:37.653Z
+    Generated: 2026-08-24T08:53:00.402Z
 ]]
 
 local __modules = {}
@@ -913,11 +913,11 @@ __modules["core/utils"] = function()
 end
 
 ----------------------------------------------------------------------
--- MODULE: games/107778070777162
+-- MODULE: games/10563114921
 ----------------------------------------------------------------------
-__modules["games/107778070777162"] = function()
+__modules["games/10563114921"] = function()
     --[[
-        Steal an Egg Module (PlaceId: 107778070777162)
+        Steal an Egg Module (PlaceId: 10563114921)
         Game-specific features for Steal an Egg.
     ]]
     
@@ -934,7 +934,7 @@ __modules["games/107778070777162"] = function()
     
         gameTab:AddParagraph({
             Title = "Steal an Egg Module Active",
-            Content = "PlaceId: 107778070777162\nCustom features specifically tailored for Steal an Egg."
+            Content = "PlaceId: 10563114921\nCustom features specifically tailored for Steal an Egg."
         })
     
         gameTab:AddToggle("SAEAutoCollect", {
@@ -1944,6 +1944,11 @@ do
         Initializes core services, modules, game router, and user interface.
     ]]
     
+    -- Wait for game to fully load before initializing
+    if not game:IsLoaded() then
+        game.Loaded:Wait()
+    end
+    task.wait(1)
     -- Cleanup previous execution instance if exists
     if getgenv and getgenv().ZxscriptCleanup then
         pcall(getgenv().ZxscriptCleanup)
@@ -1969,7 +1974,7 @@ do
             [2753915549] = "Blox Fruits (Sea 1)",
             [4442272183] = "Blox Fruits (Sea 2)",
             [7449423635] = "Blox Fruits (Sea 3)",
-            [107778070777162] = "Steal an Egg",
+            [10563114921] = "Steal an Egg",
         }
     }
     

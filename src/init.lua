@@ -3,6 +3,11 @@
     Initializes core services, modules, game router, and user interface.
 ]]
 
+-- Wait for game to fully load before initializing
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+task.wait(1)
 -- Cleanup previous execution instance if exists
 if getgenv and getgenv().ZxscriptCleanup then
     pcall(getgenv().ZxscriptCleanup)
@@ -28,7 +33,7 @@ local Hub = {
         [2753915549] = "Blox Fruits (Sea 1)",
         [4442272183] = "Blox Fruits (Sea 2)",
         [7449423635] = "Blox Fruits (Sea 3)",
-        [107778070777162] = "Steal an Egg",
+        [10563114921] = "Steal an Egg",
     }
 }
 
