@@ -1,0 +1,374 @@
+/*
+    Steal an Egg - Desktop Predictor Dashboard Stylesheet
+    Modern Dark Mode Design System with Glowing Rarities & Glassmorphism
+*/
+
+:root {
+    --bg-primary: #0b0f19;
+    --bg-secondary: #131a29;
+    --bg-card: rgba(23, 31, 50, 0.7);
+    --border-color: rgba(255, 255, 255, 0.08);
+    
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    /* Rarity Palette */
+    --color-eternal: #dc32ff;
+    --color-secret: #ffd700;
+    --color-divine: #00ffff;
+    --color-mythic: #ff3232;
+    --color-legendary: #ff8c00;
+    --color-epic: #a020f0;
+    --color-rare: #1e90ff;
+
+    --font-main: 'Inter', sans-serif;
+    --font-heading: 'Outfit', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(220, 50, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(0, 255, 255, 0.08) 0%, transparent 40%);
+}
+
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Navbar Header */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    padding: 16px 24px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.brand-icon {
+    font-size: 28px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(220, 50, 255, 0.2));
+    border-radius: 12px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.brand-title {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #00ffff, #dc32ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.brand-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.header-status {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 20px;
+    font-size: 13px;
+    color: #10b981;
+    font-weight: 600;
+}
+
+.status-indicator .dot {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #10b981;
+}
+
+/* Dashboard Grid Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 960px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.card-header h2 {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* Countdown Card */
+.countdown-card {
+    background: linear-gradient(180deg, rgba(24, 32, 52, 0.9), rgba(15, 21, 35, 0.9));
+    border: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.badge-live {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 8px;
+    background: rgba(220, 50, 255, 0.2);
+    color: var(--color-eternal);
+    border: 1px solid var(--color-eternal);
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+}
+
+.timer-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.time-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.time-value {
+    font-family: var(--font-heading);
+    font-size: 48px;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.time-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.time-separator {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text-secondary);
+    margin-top: -16px;
+}
+
+.timer-note {
+    font-size: 13px;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.text-divine {
+    color: var(--color-divine);
+}
+
+/* Sidebar Stats & Filters */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.stat-card {
+    background: rgba(19, 26, 41, 0.8);
+    border: 1px solid var(--border-color);
+    padding: 14px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.stat-value {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.stat-card.eternal .stat-value { color: var(--color-eternal); }
+.stat-card.secret .stat-value { color: var(--color-secret); }
+.stat-card.divine .stat-value { color: var(--color-divine); }
+
+/* Filter Card Buttons */
+.filter-card h3 {
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-btn {
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(220, 50, 255, 0.2));
+    border-color: #00ffff;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Feed Table */
+.feed-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.table-container {
+    overflow-x: auto;
+    margin-top: 12px;
+}
+
+.feed-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+.feed-table th {
+    padding: 12px 16px;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.feed-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.feed-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Rarity Badges */
+.badge-tier {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.badge-tier.eternal { background: rgba(220, 50, 255, 0.2); color: var(--color-eternal); border: 1px solid var(--color-eternal); }
+.badge-tier.secret { background: rgba(255, 215, 0, 0.2); color: var(--color-secret); border: 1px solid var(--color-secret); }
+.badge-tier.divine { background: rgba(0, 255, 255, 0.2); color: var(--color-divine); border: 1px solid var(--color-divine); }
+.badge-tier.mythic { background: rgba(255, 50, 50, 0.2); color: var(--color-mythic); border: 1px solid var(--color-mythic); }
+.badge-tier.legendary { background: rgba(255, 140, 0, 0.2); color: var(--color-legendary); border: 1px solid var(--color-legendary); }
+
+/* Buttons */
+.btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-sm {
+    padding: 4px 10px;
+    font-size: 12px;
+}

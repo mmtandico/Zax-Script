@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steal an Egg - PC Egg Spawn Predictor & Tracker Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Navbar -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="brand-icon">⚡</div>
+                <div>
+                    <h1 class="brand-title">Zxscript Egg Predictor</h1>
+                    <p class="brand-subtitle">Steal an Egg • Live Spawn Tracker & Timer</p>
+                </div>
+            </div>
+            <div class="header-status">
+                <div class="status-indicator active">
+                    <span class="dot"></span>
+                    <span class="status-text">Tracker Online</span>
+                </div>
+                <button id="soundToggleBtn" class="btn btn-secondary">
+                    🔊 Sound Alerts: ON
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main class="dashboard-grid">
+            <!-- Left Sidebar: Next Spawn Countdown & Controls -->
+            <aside class="sidebar">
+                <!-- Countdown Card -->
+                <div class="card countdown-card">
+                    <div class="card-header">
+                        <h2>⏱️ Next Wave Spawn Timer</h2>
+                        <span class="badge badge-live">LIVE COUNTDOWN</span>
+                    </div>
+                    <div class="timer-display">
+                        <div class="time-unit">
+                            <span id="timerMin" class="time-value">04</span>
+                            <span class="time-label">MIN</span>
+                        </div>
+                        <span class="time-separator">:</span>
+                        <div class="time-unit">
+                            <span id="timerSec" class="time-value">45</span>
+                            <span class="time-label">SEC</span>
+                        </div>
+                    </div>
+                    <p class="timer-note">Predicted High-Tier Wave: <strong id="nextPredictedTier" class="text-divine">Divine / Secret</strong></p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Spawns</span>
+                        <span id="statTotal" class="stat-value">128</span>
+                    </div>
+                    <div class="stat-card eternal">
+                        <span class="stat-label">Eternal Eggs</span>
+                        <span id="statEternal" class="stat-value">3</span>
+                    </div>
+                    <div class="stat-card secret">
+                        <span class="stat-label">Secret Eggs</span>
+                        <span id="statSecret" class="stat-value">8</span>
+                    </div>
+                    <div class="stat-card divine">
+                        <span class="stat-label">Divine Eggs</span>
+                        <span id="statDivine" class="stat-value">14</span>
+                    </div>
+                </div>
+
+                <!-- Filter Card -->
+                <div class="card filter-card">
+                    <h3>🔍 Rarity Filter</h3>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="All">All Tiers</button>
+                        <button class="filter-btn" data-filter="Eternal">Eternal</button>
+                        <button class="filter-btn" data-filter="Secret">Secret</button>
+                        <button class="filter-btn" data-filter="Divine">Divine</button>
+                        <button class="filter-btn" data-filter="Mythic">Mythic</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Area: Live Spawn Feed Log Table -->
+            <section class="feed-section card">
+                <div class="card-header">
+                    <h2>📋 Live Egg Spawn History & Predictor Feed</h2>
+                    <button id="clearLogBtn" class="btn btn-secondary btn-sm">Clear Feed</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="feed-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Egg Type / Tier</th>
+                                <th>Egg Name</th>
+                                <th>Location / Zone</th>
+                                <th>Probability</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="spawnFeedBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

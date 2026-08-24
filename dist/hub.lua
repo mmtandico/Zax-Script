@@ -1,6 +1,6 @@
 --[[
     Zxscript - Bundled Standalone Distribution
-    Generated: 2026-08-24T09:57:35.261Z
+    Generated: 2026-08-24T10:01:16.507Z
 ]]
 
 local __modules = {}
@@ -919,6 +919,7 @@ __modules["games/10563114921"] = function()
     --[[
         Steal an Egg Module (PlaceId: 10563114921 / GameId: 107778070777162)
         Features:
+        - Live In-Game Floating HUD Predictor (Time, Type, Distance, Quick TP)
         - Egg Spawn Predictor & Real-time Detector (Eternal, Secret, Divine, Mythic, etc.)
         - Tier-Filtered Egg ESP with 3D Highlights & Distance Labels
         - Auto Teleport / Auto Steal Rare Spawned Eggs
@@ -928,7 +929,7 @@ __modules["games/10563114921"] = function()
     local Workspace = game:GetService("Workspace")
     local Players = game:GetService("Players")
     local RunService = game:GetService("RunService")
-    local TweenService = game:GetService("TweenService")
+    local CoreGui = game:GetService("CoreGui")
     
     local LocalPlayer = Players.LocalPlayer
     
@@ -941,10 +942,11 @@ __modules["games/10563114921"] = function()
         EggESP = true,
         AutoCollect = false,
         AutoHatch = false,
+        HUDVisible = true,
     
         -- Rarity Color Palette
         RarityColors = {
-            Eternal = Color3.fromRGB(220, 50, 255),  -- Bright Magenta/Purple
+            Eternal = Color3.fromRGB(220, 50, 255),  -- Bright Magenta
             Secret = Color3.fromRGB(255, 215, 0),    -- Gold
             Divine = Color3.fromRGB(0, 255, 255),    -- Cyan
             Mythic = Color3.fromRGB(255, 50, 50),    -- Red
@@ -972,13 +974,18 @@ __modules["games/10563114921"] = function()
         LastSpawnedEgg = nil,
         Connections = {},
         PredictorParagraph = nil,
+    
+        -- HUD UI References
+        HUDGui = nil,
+        HUDFrame = nil,
+        HUDEggList = nil,
+        HUDCountdownLabel = nil,
     }
     
     -- Detect Egg Rarity / Tier from Model name, attributes, or child Gui
     function StealAnEgg.GetEggRarity(model)
         if not model then return "Common" end
     
-        -- Check attributes first
         local attrRarity = model:GetAttribute("Rarity") or model:GetAttribute("Tier") or model:GetAttribute("Type")
         if attrRarity and type(attrRarity) == "string" then
             for rarityName, _ in pairs(StealAnEgg.RarityColors) do
@@ -988,7 +995,6 @@ __modules["games/10563114921"] = function()
             end
         end
     
-        -- Check model name
         local name = model.Name
         for rarityName, _ in pairs(StealAnEgg.RarityColors) do
             if string.find(string.lower(name), string.lower(rarityName)) then
@@ -996,7 +1002,6 @@ __modules["games/10563114921"] = function()
             end
         end
     
-        -- Check child text objects or BillboardGuis
         for _, desc in ipairs(model:GetDescendants()) do
             if desc:IsA("TextLabel") or desc:IsA("TextButton") then
                 local txt = desc.Text or ""
@@ -1034,6 +1039,155 @@ __modules["games/10563114921"] = function()
         end
     end
     
+    -- Create Floating HUD GUI ScreenGui
+    function StealAnEgg.CreatePredictorHUD()
+        if StealAnEgg.HUDGui then
+            StealAnEgg.HUDGui:Destroy()
+        end
+    
+        local gui = Instance.new("ScreenGui")
+        gui.Name = "Zxscript_EggPredictorHUD"
+        gui.ResetOnSpawn = false
+    
+        -- Try CoreGui first, fallback to PlayerGui
+        local parent = pcall(function() return CoreGui end) and CoreGui or LocalPlayer:WaitForChild("PlayerGui")
+        gui.Parent = parent
+        StealAnEgg.HUDGui = gui
+    
+        -- Main Container Frame
+        local frame = Instance.new("Frame")
+        frame.Name = "HUDFrame"
+        frame.Size = UDim2.new(0, 320, 0, 240)
+        frame.Position = UDim2.new(0, 20, 0.3, 0)
+        frame.BackgroundColor3 = Color3.fromRGB(15, 18, 28)
+        frame.BackgroundTransparency = 0.15
+        frame.BorderSizePixel = 0
+        frame.Active = true
+        frame.Draggable = true
+        frame.Parent = gui
+        StealAnEgg.HUDFrame = frame
+    
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = frame
+    
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Color3.fromRGB(0, 255, 255)
+        stroke.Thickness = 1.5
+        stroke.Transparency = 0.4
+        stroke.Parent = frame
+    
+        -- Title Bar
+        local titleLabel = Instance.new("TextLabel")
+        titleLabel.Size = UDim2.new(1, -10, 0, 32)
+        titleLabel.Position = UDim2.new(0, 10, 0, 4)
+        titleLabel.BackgroundTransparency = 1
+        titleLabel.Text = "⚡ EGG SPAWN PREDICTOR"
+        titleLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
+        titleLabel.Font = Enum.Font.SourceSansBold
+        titleLabel.TextSize = 16
+        titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        titleLabel.Parent = frame
+    
+        -- Next Spawn Timer Countdown Label
+        local timerLabel = Instance.new("TextLabel")
+        timerLabel.Size = UDim2.new(1, -20, 0, 22)
+        timerLabel.Position = UDim2.new(0, 10, 0, 34)
+        timerLabel.BackgroundColor3 = Color3.fromRGB(24, 30, 45)
+        timerLabel.BackgroundTransparency = 0.3
+        timerLabel.Text = "⏱️ Next Rare Spawn: Monitoring..."
+        timerLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+        timerLabel.Font = Enum.Font.SourceSansSemibold
+        timerLabel.TextSize = 13
+        timerLabel.Parent = frame
+        StealAnEgg.HUDCountdownLabel = timerLabel
+    
+        local timerCorner = Instance.new("UICorner")
+        timerCorner.CornerRadius = UDim.new(0, 6)
+        timerCorner.Parent = timerLabel
+    
+        -- Scroll Log for Spawn History
+        local scroll = Instance.new("ScrollingFrame")
+        scroll.Size = UDim2.new(1, -20, 1, -70)
+        scroll.Position = UDim2.new(0, 10, 0, 62)
+        scroll.BackgroundTransparency = 1
+        scroll.BorderSizePixel = 0
+        scroll.ScrollBarThickness = 4
+        scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+        scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        scroll.Parent = frame
+        StealAnEgg.HUDEggList = scroll
+    
+        local listLayout = Instance.new("UIListLayout")
+        listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        listLayout.Padding = UDim.new(0, 4)
+        listLayout.Parent = scroll
+    end
+    
+    -- Add Spawn Log Card to Floating HUD
+    function StealAnEgg.AddHUDLogEntry(rarity, name, model)
+        if not StealAnEgg.HUDEggList then return end
+    
+        local color = StealAnEgg.RarityColors[rarity] or Color3.fromRGB(200, 200, 200)
+        local timeStr = os.date("%X")
+    
+        local card = Instance.new("Frame")
+        card.Size = UDim2.new(1, -6, 0, 34)
+        card.BackgroundColor3 = Color3.fromRGB(24, 30, 45)
+        card.BorderSizePixel = 0
+        card.Parent = StealAnEgg.HUDEggList
+    
+        local cardCorner = Instance.new("UICorner")
+        cardCorner.CornerRadius = UDim.new(0, 6)
+        cardCorner.Parent = card
+    
+        local rarityBadge = Instance.new("TextLabel")
+        rarityBadge.Size = UDim2.new(0, 75, 1, -6)
+        rarityBadge.Position = UDim2.new(0, 3, 0, 3)
+        rarityBadge.BackgroundColor3 = color
+        rarityBadge.Text = string.upper(rarity)
+        rarityBadge.TextColor3 = Color3.fromRGB(0, 0, 0)
+        rarityBadge.Font = Enum.Font.SourceSansBold
+        rarityBadge.TextSize = 12
+        rarityBadge.Parent = card
+    
+        local badgeCorner = Instance.new("UICorner")
+        badgeCorner.CornerRadius = UDim.new(0, 4)
+        badgeCorner.Parent = rarityBadge
+    
+        local infoLabel = Instance.new("TextLabel")
+        infoLabel.Size = UDim2.new(1, -135, 1, 0)
+        infoLabel.Position = UDim2.new(0, 84, 0, 0)
+        infoLabel.BackgroundTransparency = 1
+        infoLabel.Text = string.format("%s | %s", timeStr, name)
+        infoLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+        infoLabel.Font = Enum.Font.SourceSans
+        infoLabel.TextSize = 13
+        infoLabel.TextXAlignment = Enum.TextXAlignment.Left
+        infoLabel.Parent = card
+    
+        -- Quick TP Button on Card
+        local tpBtn = Instance.new("TextButton")
+        tpBtn.Size = UDim2.new(0, 42, 1, -6)
+        tpBtn.Position = UDim2.new(1, -45, 0, 3)
+        tpBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 216)
+        tpBtn.Text = "TP"
+        tpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        tpBtn.Font = Enum.Font.SourceSansBold
+        tpBtn.TextSize = 12
+        tpBtn.Parent = card
+    
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 4)
+        btnCorner.Parent = tpBtn
+    
+        tpBtn.MouseButton1Click:Connect(function()
+            if model and model.Parent then
+                StealAnEgg.TeleportTo(model)
+            end
+        end)
+    end
+    
     -- Create 3D Highlight & Billboard for Egg
     function StealAnEgg.CreateEggESP(model, rarity)
         if not model or not model:IsA("PVInstance") then return end
@@ -1045,7 +1199,6 @@ __modules["games/10563114921"] = function()
     
         local color = StealAnEgg.RarityColors[rarity] or Color3.fromRGB(255, 255, 255)
     
-        -- Highlight Object
         local highlight = Instance.new("Highlight")
         highlight.Name = "EggESP_Highlight"
         highlight.Adornee = model
@@ -1055,7 +1208,6 @@ __modules["games/10563114921"] = function()
         highlight.OutlineTransparency = 0
         highlight.Parent = model
     
-        -- Billboard Text Label
         local primaryPart = model:IsA("Model") and (model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")) or model
         local bb = nil
         if primaryPart and primaryPart:IsA("BasePart") then
@@ -1083,7 +1235,6 @@ __modules["games/10563114921"] = function()
         StealAnEgg.ActiveHighlights[model] = highlight
         if bb then StealAnEgg.ActiveBillboards[model] = bb end
     
-        -- Clean up when model destroyed
         model.Destroying:Connect(function()
             if StealAnEgg.ActiveHighlights[model] then
                 StealAnEgg.ActiveHighlights[model]:Destroy()
@@ -1112,7 +1263,6 @@ __modules["games/10563114921"] = function()
     function StealAnEgg.OnEggSpawned(model, Notifications)
         if not model then return end
         
-        -- Check if item is an Egg
         local isEgg = string.find(string.lower(model.Name), "egg") 
             or model:GetAttribute("IsEgg") == true
             or model:FindFirstChild("Egg") ~= nil
@@ -1128,6 +1278,9 @@ __modules["games/10563114921"] = function()
             Time = os.time(),
             Name = model.Name
         }
+    
+        -- Add entry to HUD Overlay
+        StealAnEgg.AddHUDLogEntry(rarity, model.Name, model)
     
         -- Update UI Predictor Status
         if StealAnEgg.PredictorParagraph then
@@ -1174,6 +1327,9 @@ __modules["games/10563114921"] = function()
         local gameTab = UI.Tabs.Game
         if not gameTab then return end
     
+        -- Create In-Game Predictor Floating HUD Overlay
+        StealAnEgg.CreatePredictorHUD()
+    
         gameTab:AddSection("🥚 Steal an Egg - Predictor & Auto Farm")
     
         -- Predictor Info Banner
@@ -1182,7 +1338,17 @@ __modules["games/10563114921"] = function()
             Content = "Monitoring Workspace for Eternal, Secret, Divine, and Mythic Egg Spawns..."
         })
     
-        -- Predictor Toggles
+        gameTab:AddToggle("SAEHUDToggle", {
+            Title = "Show Floating Predictor HUD Overlay",
+            Default = true,
+            Callback = function(val)
+                StealAnEgg.HUDVisible = val
+                if StealAnEgg.HUDFrame then
+                    StealAnEgg.HUDFrame.Visible = val
+                end
+            end
+        })
+    
         gameTab:AddToggle("SAEPredictorToggle", {
             Title = "Enable Egg Spawn Predictor",
             Default = true,
@@ -1281,7 +1447,6 @@ __modules["games/10563114921"] = function()
                         if model and model.Parent then
                             local pos = model:IsA("Model") and model:GetPivot().Position or model.Position
                             if (root.Position - pos).Magnitude < 15 then
-                                -- Touch / Fire touch interest if part exists
                                 local touchPart = model:IsA("Model") and (model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")) or model
                                 if touchPart then
                                     firetouchinterest(root, touchPart, 0)
