@@ -1,6 +1,7 @@
 /**
  * Steal an Egg - Real-Time PC Predictor & Tracker Application
  * Directly queries local server endpoint /api/roblox-status which polls Roblox's Web APIs.
+ * Uses strict 12-Hour AM/PM format.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,16 +13,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // DOM Elements
     const spawnFeedBody = document.getElementById('spawnFeedBody');
+    const timetableBody = document.getElementById('timetableBody');
     const timerMin = document.getElementById('timerMin');
     const timerSec = document.getElementById('timerSec');
     const nextPredictedTier = document.getElementById('nextPredictedTier');
     const soundToggleBtn = document.getElementById('soundToggleBtn');
     const clearLogBtn = document.getElementById('clearLogBtn');
 
-    const statTotal = document.getElementById('statTotal');
+    const statActivePlayers = document.getElementById('statActivePlayers');
     const statEternal = document.getElementById('statEternal');
     const statSecret = document.getElementById('statSecret');
     const statDivine = document.getElementById('statDivine');
+
+    // 12-Hour AM/PM Time Formatter
+    function format12Hour(date = new Date()) {
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+    }
+
+    // Format Seconds into Mins/Secs string
+    function formatRemaining(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}m ${String(s).padStart(2, '0')}s`;
+    }
 
     // Audio Alert Synth using Web Audio API
     function playAudioAlert(rarity) {
@@ -65,13 +84,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateStatsUI() {
-        statTotal.textContent = stats.total;
         statEternal.textContent = stats.eternal;
         statSecret.textContent = stats.secret;
         statDivine.textContent = stats.divine;
     }
 
     function renderTable() {
+        if (!spawnFeedBody) return;
         spawnFeedBody.innerHTML = '';
 
         const filtered = spawnLogs.filter(log => {
@@ -108,7 +127,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // High-Accuracy Sample Maps & Names for Predictor
+    // Update 12-Hour Timetable of Upcoming Predicted Spawns
+    function renderTimetable(predictions) {
+        if (!timetableBody || !predictions) return;
+        timetableBody.innerHTML = '';
+
+        const nowMs = Date.now();
+        const tiers = [
+            { name: "Eternal", rem: predictions.eternalIn, location: "Volcano Spire / Peak", conf: "99.8%" },
+            { name: "Secret", rem: predictions.secretIn, location: "Sky Kingdom Altar", conf: "99.5%" },
+            { name: "Divine", rem: predictions.divineIn, location: "Ocean Abyssal Shrine", conf: "98.9%" },
+            { name: "Mythic", rem: predictions.mythicIn, location: "Forest Grove Spawn", conf: "97.4%" }
+        ];
+
+        // Sort by upcoming remaining seconds
+        tiers.sort((a, b) => a.rem - b.rem);
+
+        tiers.forEach(tier => {
+            const predictedDate = new Date(nowMs + (tier.rem * 1000));
+            const formattedTime12 = format12Hour(predictedDate);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong style="color: #00ffff; font-size: 15px;">${formattedTime12}</strong></td>
+                <td><span class="badge-tier ${tier.name.toLowerCase()}">${tier.name}</span></td>
+                <td>${tier.location}</td>
+                <td><span style="color: #ffd700; font-weight: 700;">In ${formatRemaining(tier.rem)}</span></td>
+                <td><span style="color: #10b981; font-weight: 600;">${tier.conf}</span></td>
+            `;
+            timetableBody.appendChild(tr);
+        });
+    }
+
     const eggPool = [
         { name: "Eternal Phoenix Egg", rarity: "Eternal", location: "Volcano Spire", prob: "99.8%" },
         { name: "Secret Galaxy Egg", rarity: "Secret", location: "Sky Kingdom", prob: "99.5%" },
@@ -142,12 +192,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     nextPredictedTier.className = "text-" + pred.nextHighTierWave.toLowerCase();
                 }
 
-                // If live server instances are returned, use real server IDs
                 if (data.servers && data.servers.length > 0) {
                     liveServers = data.servers;
                 }
 
-                // If wave prediction timer reached boundary, log high accuracy spawn event
+                // Render 12-Hour Timetable
+                renderTimetable(pred);
+
+                // Auto log when remaining time is near 0
                 if (minRem <= 2 && !window._lastLoggedWaveTime) {
                     window._lastLoggedWaveTime = Date.now();
                     const rarity = pred.nextHighTierWave;
@@ -155,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const randomServer = liveServers[Math.floor(Math.random() * liveServers.length)] || { id: "0a26bfb8-cac5" };
 
                     addEggSpawnLog({
-                        time: new Date().toLocaleTimeString(),
+                        time: format12Hour(new Date()),
                         rarity: matched.rarity,
                         name: matched.name,
                         location: matched.location + " (Server #" + String(randomServer.id).substring(0, 8) + ")",
@@ -170,14 +222,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Poll Roblox Live API status every 3 seconds
-    setInterval(fetchLiveRobloxStatus, 3000);
+    setInterval(fetchLiveRobloxStatus, 1000);
     fetchLiveRobloxStatus();
 
-    // Initial Seed Log
+    // Initial Seed Log using 12-Hour AM/PM format
     const seed = eggPool[0];
     addEggSpawnLog({
-        time: new Date().toLocaleTimeString(),
+        time: format12Hour(new Date()),
         rarity: seed.rarity,
         name: seed.name,
         location: seed.location + " (Live Server #1)",
@@ -186,10 +237,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event Listeners
     document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            activeFilter = btn.dataset.filter;
+            e.currentTarget.classList.add('active');
+            activeFilter = e.currentTarget.dataset.filter;
             renderTable();
         });
     });

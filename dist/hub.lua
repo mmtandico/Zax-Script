@@ -1,6 +1,6 @@
 --[[
     Zxscript - Bundled Standalone Distribution
-    Generated: 2026-08-24T10:07:04.183Z
+    Generated: 2026-08-24T10:09:54.043Z
 ]]
 
 local __modules = {}
@@ -1124,12 +1124,22 @@ __modules["games/10563114921"] = function()
         listLayout.Parent = scroll
     end
     
+    local function Format12Hour(timestamp)
+        timestamp = timestamp or os.time()
+        local dateTable = os.date("*t", timestamp)
+        local hour = dateTable.hour
+        local ampm = hour >= 12 and "PM" or "AM"
+        hour = hour % 12
+        if hour == 0 then hour = 12 end
+        return string.format("%02d:%02d:%02d %s", hour, dateTable.min, dateTable.sec, ampm)
+    end
+    
     -- Add Spawn Log Card to Floating HUD
     function StealAnEgg.AddHUDLogEntry(rarity, name, model)
         if not StealAnEgg.HUDEggList then return end
     
         local color = StealAnEgg.RarityColors[rarity] or Color3.fromRGB(200, 200, 200)
-        local timeStr = os.date("%X")
+        local timeStr = Format12Hour()
     
         local card = Instance.new("Frame")
         card.Size = UDim2.new(1, -6, 0, 34)
@@ -1287,7 +1297,7 @@ __modules["games/10563114921"] = function()
             pcall(function()
                 StealAnEgg.PredictorParagraph:Set({
                     Title = string.format("⚡ Last Spawned: %s Egg", rarity),
-                    Content = string.format("Name: %s\nDetected at: %s\nRarity Tier: %s", model.Name, os.date("%X"), rarity)
+                    Content = string.format("Name: %s\nDetected at: %s\nRarity Tier: %s", model.Name, Format12Hour(), rarity)
                 })
             end)
         end
