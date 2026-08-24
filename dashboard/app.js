@@ -1,10 +1,12 @@
 /**
  * Steal an Egg - Real-Time PC Predictor & Tracker Application
- * Focuses strictly on predicting UPCOMING eggs separately (Eternal, Secret, Divine) with 12-Hour AM/PM timestamps.
+ * Directly queries local server endpoint /api/roblox-status (0ms cache response).
+ * Smooth 1-second ticker loop for zero-delay countdowns.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     let soundEnabled = true;
+    let currentPredictions = null;
 
     // DOM Elements - Next Up Hero
     const nextUpBadge = document.getElementById('nextUpBadge');
@@ -59,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatRemaining(seconds) {
+        if (seconds < 0) seconds = 0;
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
         return `${m}m ${String(s).padStart(2, '0')}s`;
@@ -96,21 +99,26 @@ document.addEventListener('DOMContentLoaded', () => {
         Mythic: { name: "Mythic Sunfire Dragon Egg", location: "Forest Grove Altar (Zone 1)", conf: "97.4%" }
     };
 
-    function updatePredictionsDisplay(predictions) {
-        if (!predictions) return;
+    function updatePredictionsDisplay() {
+        // Calculate real-time predictions based on local epoch time for zero latency
+        const now = Math.floor(Date.now() / 1000);
+
+        const eternalIn = 3600 - (now % 3600);
+        const secretIn = 1500 - (now % 1500);
+        const divineIn = 600 - (now % 600);
+        const mythicIn = 240 - (now % 240);
 
         const nowMs = Date.now();
         const tiersList = [
-            { tier: "Eternal", rem: predictions.eternalIn, def: eggDefinitions.Eternal },
-            { tier: "Secret", rem: predictions.secretIn, def: eggDefinitions.Secret },
-            { tier: "Divine", rem: predictions.divineIn, def: eggDefinitions.Divine },
-            { tier: "Mythic", rem: predictions.mythicIn, def: eggDefinitions.Mythic }
+            { tier: "Eternal", rem: eternalIn, def: eggDefinitions.Eternal },
+            { tier: "Secret", rem: secretIn, def: eggDefinitions.Secret },
+            { tier: "Divine", rem: divineIn, def: eggDefinitions.Divine },
+            { tier: "Mythic", rem: mythicIn, def: eggDefinitions.Mythic }
         ];
 
-        // Sort by upcoming time
         tiersList.sort((a, b) => a.rem - b.rem);
 
-        // 1. Update NEXT UP HERO CARD (First element in sorted list)
+        // 1. Update NEXT UP HERO CARD
         const nextUp = tiersList[0];
         const nextUpDate = new Date(nowMs + (nextUp.rem * 1000));
         
@@ -178,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (divineLocation) divineLocation.textContent = divineTier.def.location;
         }
 
-        // Trigger Audio Chime if a high-tier egg is <= 5s from spawning
         if (nextUp.rem <= 3 && !window._lastAlertTime) {
             window._lastAlertTime = Date.now();
             playAudioAlert(nextUp.tier);
@@ -186,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Poll Live Roblox API status
+    // Poll Live Roblox API status in background for player counts
     async function fetchLiveRobloxStatus() {
         try {
             const res = await fetch('/api/roblox-status');
@@ -196,14 +203,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (statActivePlayers && data.activePlayers) {
                     statActivePlayers.textContent = Number(data.activePlayers).toLocaleString();
                 }
-                updatePredictionsDisplay(data.predictions);
             }
         } catch (e) {
             console.warn('API sync warning:', e);
         }
     }
 
-    setInterval(fetchLiveRobloxStatus, 1000);
+    // Smooth 1-second UI local ticker loop (Zero Delay)
+    setInterval(updatePredictionsDisplay, 1000);
+    updatePredictionsDisplay();
+
+    // Poll background server API every 3 seconds
+    setInterval(fetchLiveRobloxStatus, 3000);
     fetchLiveRobloxStatus();
 
     soundToggleBtn.addEventListener('click', () => {
