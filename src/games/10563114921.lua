@@ -216,12 +216,31 @@ local function Format12Hour(timestamp)
     return string.format("%02d:%02d:%02d %s", hour, dateTable.min, dateTable.sec, ampm)
 end
 
+StealAnEgg.EggZones = {
+    ["Tralaledon"] = "Dino Island",
+    ["TyrannosaurusRex"] = "Dino Island",
+    ["Warden"] = "Jungle Temple",
+    ["Cave Dragon"] = "Crystal Cave",
+    ["Alien Skeleton Boss"] = "Sci-Fi Space Lab",
+    ["Cerberus"] = "Underworld Lair",
+    ["Yeti"] = "Snow Mountain Peak",
+    ["Kraken"] = "Atlantis Ocean Floor",
+    ["Mosasaurus"] = "Deep Water Trench",
+    ["Eternal Lunar Dragon"] = "Lunar Temple Summit",
+    ["Dragon"] = "Volcano Lava Crater",
+    ["El Maja"] = "Desert Pyramid",
+    ["Ascended Vermilion Phoenix"] = "Celestial Sky Shrine",
+    ["Ice Dragon"] = "Frost Citadel Glacier",
+    ["Unicorn"] = "Enchanted Rainbow Meadow",
+}
+
 -- Add Spawn Log Card to Floating HUD
 function StealAnEgg.AddHUDLogEntry(rarity, name, model)
     if not StealAnEgg.HUDEggList then return end
 
     local color = StealAnEgg.RarityColors[rarity] or Color3.fromRGB(200, 200, 200)
     local timeStr = Format12Hour()
+    local zoneName = StealAnEgg.EggZones[name] or "Spawn Plaza"
 
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, -6, 0, 34)
@@ -251,7 +270,7 @@ function StealAnEgg.AddHUDLogEntry(rarity, name, model)
     infoLabel.Size = UDim2.new(1, -135, 1, 0)
     infoLabel.Position = UDim2.new(0, 84, 0, 0)
     infoLabel.BackgroundTransparency = 1
-    infoLabel.Text = string.format("%s | %s", timeStr, name)
+    infoLabel.Text = string.format("%s - [📍 %s] - %s", name, zoneName, timeStr)
     infoLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
     infoLabel.Font = Enum.Font.SourceSans
     infoLabel.TextSize = 13

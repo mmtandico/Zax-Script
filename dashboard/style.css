@@ -37,7 +37,7 @@ body {
 
 .predictor-wrapper {
     width: 100%;
-    max-width: 580px;
+    max-width: 680px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -101,7 +101,7 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
-    font-size: 17px;
+    font-size: 16px;
     padding-bottom: 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -114,7 +114,7 @@ body {
 .next-up-banner .egg-name-highlight {
     color: #ffffff;
     font-weight: 800;
-    font-size: 18px;
+    font-size: 17px;
 }
 
 .dot-sep {
@@ -122,12 +122,23 @@ body {
     opacity: 0.6;
 }
 
+/* ZONE BADGE */
+.zone-badge {
+    background: rgba(0, 255, 255, 0.1);
+    color: #00ffff;
+    border: 1px solid rgba(0, 255, 255, 0.25);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
 /* BADGES */
 .time-badge {
     background: var(--bg-badge);
     padding: 3px 10px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: #ffffff;
 }
@@ -170,7 +181,7 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .egg-row .egg-name {
