@@ -84,7 +84,51 @@ body {
     font-size: 12px;
 }
 
+/* SERVER CALIBRATION CONTROL BAR */
+.calibrate-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(0, 255, 255, 0.08);
+    border: 1px solid rgba(0, 255, 255, 0.25);
+    border-radius: 12px;
+}
 
+.calibrate-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.calibrate-info strong {
+    font-size: 14px;
+    color: #00ffff;
+}
+
+.calibrate-info .subtext {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.calibrate-btn {
+    background: linear-gradient(135deg, #00e5ff 0%, #0088ff 100%);
+    color: #000;
+    font-weight: 800;
+    font-size: 12px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 229, 255, 0.3);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.calibrate-btn:active {
+    transform: scale(0.96);
+}
 
 /* MAIN PREDICTOR CARD */
 .predictor-card {

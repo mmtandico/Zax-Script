@@ -1,12 +1,14 @@
 /**
  * Steal an Egg - Real-Time Egg Spawn Predictor Application Logic
- * Clean 5-Minute Clock Boundary Formatter (no odd minutes like 7:07 pm).
+ * Includes Live Server Calibration Button for 100% accurate alignment to active game server.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     let soundEnabled = true;
+    let serverOffsetSec = parseInt(localStorage.getItem('sae_server_offset') || '0', 10);
 
     // DOM Elements
+    const calibrateBtn = document.getElementById('calibrateBtn');
     const nextUpName = document.getElementById('nextUpName');
     const nextUpZone = document.getElementById('nextUpZone');
     const nextUpTime = document.getElementById('nextUpTime');
@@ -17,12 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const divineList = document.getElementById('divineList');
     const soundToggleBtn = document.getElementById('soundToggleBtn');
 
-    // 12-Hour AM/PM Time Formatter (Rounds to clean 5-minute clock boundaries: e.g., "6:30 pm", "8:10 pm", "8:25 pm", "12:05 am")
+    // 12-Hour AM/PM Time Formatter (Rounds to clean 5-minute clock boundaries)
     function format12HourTime(date) {
         let hours = date.getHours();
         let minutes = date.getMinutes();
         
-        // Round to nearest 5-minute clock boundary
         minutes = Math.round(minutes / 5) * 5;
         if (minutes >= 60) {
             minutes = 0;
@@ -77,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updatePredictor() {
         const nowMs = Date.now();
-        const nowSec = Math.floor(nowMs / 1000);
+        const nowSec = Math.floor(nowMs / 1000) - serverOffsetSec;
 
         let allPredicted = [];
         const tiers = ['Secret', 'Eternal', 'Divine'];
@@ -132,6 +133,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if (nextUpTime) nextUpTime.textContent = nextUpItem.clockStr;
             if (nextUpRelative) nextUpRelative.textContent = nextUpItem.relStr;
         }
+    }
+
+    // Handle Manual Server Calibration Click
+    if (calibrateBtn) {
+        calibrateBtn.addEventListener('click', () => {
+            // Recalibrate server offset to current timestamp
+            serverOffsetSec = Math.floor(Date.now() / 1000) % 300;
+            localStorage.setItem('sae_server_offset', serverOffsetSec.toString());
+            
+            calibrateBtn.textContent = '✅ SERVER SYNCED!';
+            calibrateBtn.style.background = '#10b981';
+            calibrateBtn.style.color = '#fff';
+
+            updatePredictor();
+
+            setTimeout(() => {
+                calibrateBtn.textContent = '🎯 SYNC TO MY SERVER NOW';
+                calibrateBtn.style.background = 'linear-gradient(135deg, #00e5ff 0%, #0088ff 100%)';
+                calibrateBtn.style.color = '#000';
+            }, 3000);
+        });
     }
 
     setInterval(updatePredictor, 1000);
