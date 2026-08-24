@@ -1,6 +1,6 @@
 --[[
     Zxscript - Bundled Standalone Distribution
-    Generated: 2026-08-24T12:32:24.347Z
+    Generated: 2026-08-24T12:39:09.914Z
 ]]
 
 local __modules = {}
@@ -1732,6 +1732,28 @@ __modules["games/universal"] = function()
             Content = "No specialized script detected for PlaceId: " .. tostring(game.PlaceId) .. ".\nAll universal Combat, Visuals, Movement, and Utility features are operational."
         })
     
+        gameTab:AddSection("🎯 Target HUD Controls")
+    
+        gameTab:AddToggle("TargetHUDToggle", {
+            Title = "Enable Target HUD",
+            Default = false,
+            Callback = function(val)
+                getgenv().targethud.enabled = val
+            end
+        })
+    
+        gameTab:AddSlider("TargetHUDDistance", {
+            Title = "Detection Distance",
+            Min = 1,
+            Max = 50,
+            Default = 15,
+            Callback = function(val)
+                getgenv().targethud.maxDistance = val
+            end
+        })
+    
+        gameTab:AddSection("🛠️ Player Utilities")
+    
         gameTab:AddButton({
             Title = "Bypass Clip Through Doors (Local TP)",
             Callback = function()
@@ -1870,9 +1892,202 @@ __modules["modules/combat"] = function()
                     end
                 end
             end
+            -- Update Target HUD
+            Combat.UpdateTargetHUD()
         end))
     
+        Combat.CreateTargetHUD()
         Combat.Enabled = true
+    end
+    
+    -- Target HUD Manager
+    Combat.TargetHUD = {
+        ScreenGui = nil,
+        OuterBox = nil,
+        DisplayNameLabel = nil,
+        EquippedItemLabel = nil,
+        HealthBar = nil,
+        HealthNumberLabel = nil,
+        AvatarImage = nil,
+        Enabled = false,
+        MaxDistance = 15,
+        BackgroundTransparency = 0.3,
+        DefaultHealthColor = Color3.fromRGB(128, 0, 128)
+    }
+    
+    -- Export global configuration table as reference snippet requested
+    getgenv().targethud = {
+        enabled = false,
+        maxDistance = 15,
+        defaultHealthColor = Color3.fromRGB(128, 0, 128),
+        backgroundTransparency = 0.3
+    }
+    
+    function Combat.CreateTargetHUD()
+        if Combat.TargetHUD.ScreenGui then
+            pcall(function() Combat.TargetHUD.ScreenGui:Destroy() end)
+        end
+    
+        local LocalPlayer = Players.LocalPlayer
+        local CoreGui = game:GetService("CoreGui")
+        
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "Zxscript_TargetHUD"
+        screenGui.ResetOnSpawn = false
+        
+        local parent = pcall(function() return CoreGui end) and CoreGui or LocalPlayer:WaitForChild("PlayerGui")
+        screenGui.Parent = parent
+        Combat.TargetHUD.ScreenGui = screenGui
+    
+        local outerBox = Instance.new("Frame")
+        outerBox.Size = UDim2.new(0, 220, 0, 125)
+        outerBox.Position = UDim2.new(0.5, -110, 0.8, -140)
+        outerBox.BackgroundColor3 = Color3.fromRGB(22, 22, 31)
+        outerBox.BackgroundTransparency = getgenv().targethud.backgroundTransparency or Combat.TargetHUD.BackgroundTransparency
+        outerBox.BorderColor3 = Color3.fromRGB(80, 80, 80)
+        outerBox.BorderSizePixel = 1
+        outerBox.Parent = screenGui
+        outerBox.Visible = false
+        Combat.TargetHUD.OuterBox = outerBox
+    
+        local header = Instance.new("Frame")
+        header.Size = UDim2.new(1, 0, 0, 20)
+        header.Position = UDim2.new(0, 0, 0, 0)
+        header.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+        header.BorderSizePixel = 0
+        header.Parent = outerBox
+    
+        local titleText = Instance.new("TextLabel")
+        titleText.Size = UDim2.new(1, -10, 1, 0)
+        titleText.Position = UDim2.new(0, 5, 0, 0)
+        titleText.BackgroundTransparency = 1
+        titleText.Text = "🎯 TARGET HUD"
+        titleText.TextColor3 = Color3.fromRGB(200, 200, 255)
+        titleText.Font = Enum.Font.GothamBold
+        titleText.TextSize = 11
+        titleText.TextXAlignment = Enum.TextXAlignment.Left
+        titleText.Parent = header
+    
+        local displayNameLabel = Instance.new("TextLabel")
+        displayNameLabel.Size = UDim2.new(1, -55, 0, 20)
+        displayNameLabel.Position = UDim2.new(0, 5, 0, 22)
+        displayNameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        displayNameLabel.BackgroundTransparency = 1
+        displayNameLabel.Font = Enum.Font.GothamBold
+        displayNameLabel.TextSize = 13
+        displayNameLabel.Text = ""
+        displayNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+        displayNameLabel.Parent = outerBox
+        Combat.TargetHUD.DisplayNameLabel = displayNameLabel
+    
+        local equippedItemLabel = Instance.new("TextLabel")
+        equippedItemLabel.Size = UDim2.new(1, -55, 0, 20)
+        equippedItemLabel.Position = UDim2.new(0, 5, 0, 42)
+        equippedItemLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+        equippedItemLabel.BackgroundTransparency = 1
+        equippedItemLabel.Font = Enum.Font.Gotham
+        equippedItemLabel.TextSize = 12
+        equippedItemLabel.Text = "Equipped: None"
+        equippedItemLabel.TextXAlignment = Enum.TextXAlignment.Left
+        equippedItemLabel.Parent = outerBox
+        Combat.TargetHUD.EquippedItemLabel = equippedItemLabel
+    
+        local avatarImage = Instance.new("ImageLabel")
+        avatarImage.Size = UDim2.new(0, 40, 0, 40)
+        avatarImage.Position = UDim2.new(1, -45, 0, 22)
+        avatarImage.BackgroundTransparency = 1
+        avatarImage.Image = ""
+        avatarImage.Parent = outerBox
+        Combat.TargetHUD.AvatarImage = avatarImage
+    
+        local avatarCorner = Instance.new("UICorner")
+        avatarCorner.CornerRadius = UDim.new(0, 6)
+        avatarCorner.Parent = avatarImage
+    
+        local healthBarBackground = Instance.new("Frame")
+        healthBarBackground.Size = UDim2.new(0.9, 0, 0, 14)
+        healthBarBackground.Position = UDim2.new(0.05, 0, 0, 72)
+        healthBarBackground.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        healthBarBackground.BorderColor3 = Color3.fromRGB(80, 80, 80)
+        healthBarBackground.BorderSizePixel = 1
+        healthBarBackground.Parent = outerBox
+    
+        local healthBar = Instance.new("Frame")
+        healthBar.Size = UDim2.new(0.5, 0, 1, 0)
+        healthBar.Position = UDim2.new(0, 0, 0, 0)
+        healthBar.BackgroundColor3 = getgenv().targethud.defaultHealthColor or Combat.TargetHUD.DefaultHealthColor
+        healthBar.BorderSizePixel = 0
+        healthBar.Parent = healthBarBackground
+        Combat.TargetHUD.HealthBar = healthBar
+    
+        local healthNumberLabel = Instance.new("TextLabel")
+        healthNumberLabel.Size = UDim2.new(1, 0, 1, 0)
+        healthNumberLabel.Position = UDim2.new(0, 0, 0, 0)
+        healthNumberLabel.BackgroundTransparency = 1
+        healthNumberLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        healthNumberLabel.Font = Enum.Font.GothamBold
+        healthNumberLabel.TextSize = 11
+        healthNumberLabel.Text = "100%"
+        healthNumberLabel.TextXAlignment = Enum.TextXAlignment.Center
+        healthNumberLabel.TextYAlignment = Enum.TextYAlignment.Center
+        healthNumberLabel.Parent = healthBarBackground
+        Combat.TargetHUD.HealthNumberLabel = healthNumberLabel
+    end
+    
+    function Combat.UpdateTargetHUD()
+        local isEnabled = getgenv().targethud.enabled or Combat.TargetHUD.Enabled
+        if not isEnabled or not Combat.TargetHUD.OuterBox then
+            if Combat.TargetHUD.OuterBox then Combat.TargetHUD.OuterBox.Visible = false end
+            return
+        end
+    
+        local LocalPlayer = Players.LocalPlayer
+        local mouse = LocalPlayer:GetMouse()
+        if not mouse then return end
+    
+        local targetPlayer = nil
+        local targetCharacter = nil
+        local targetHumanoid = nil
+        local maxDist = getgenv().targethud.maxDistance or Combat.TargetHUD.MaxDistance
+    
+        for _, otherPlayer in pairs(Players:GetPlayers()) do
+            if otherPlayer ~= LocalPlayer and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Head") then
+                local head = otherPlayer.Character.Head
+                local distance = (mouse.Hit.p - head.Position).Magnitude
+    
+                if distance < maxDist then
+                    targetPlayer = otherPlayer
+                    targetCharacter = otherPlayer.Character
+                    targetHumanoid = targetCharacter:FindFirstChild("Humanoid")
+                    break
+                end
+            end
+        end
+    
+        if targetPlayer and targetHumanoid and Combat.TargetHUD.OuterBox then
+            Combat.TargetHUD.OuterBox.Visible = true
+            Combat.TargetHUD.DisplayNameLabel.Text = string.format("%s (%s)", targetPlayer.DisplayName, targetPlayer.Name)
+    
+            local equippedTool = targetPlayer.Character:FindFirstChildOfClass("Tool")
+            if equippedTool then
+                Combat.TargetHUD.EquippedItemLabel.Text = "Equipped: " .. equippedTool.Name
+            else
+                Combat.TargetHUD.EquippedItemLabel.Text = "Equipped: None"
+            end
+    
+            local healthPercentage = math.clamp(targetHumanoid.Health / math.max(targetHumanoid.MaxHealth, 1), 0, 1)
+            Combat.TargetHUD.HealthBar.Size = UDim2.new(healthPercentage, 0, 1, 0)
+            Combat.TargetHUD.HealthNumberLabel.Text = string.format("%d%%", math.floor(healthPercentage * 100))
+    
+            pcall(function()
+                local content = Players:GetUserThumbnailAsync(targetPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+                Combat.TargetHUD.AvatarImage.Image = content
+            end)
+        else
+            if Combat.TargetHUD.OuterBox then
+                Combat.TargetHUD.OuterBox.Visible = false
+            end
+        end
     end
     
     function Combat.ResetHitboxes()
@@ -1889,6 +2104,11 @@ __modules["modules/combat"] = function()
     function Combat.Cleanup()
         Combat.Enabled = false
         Combat.ResetHitboxes()
+    
+        if Combat.TargetHUD.ScreenGui then
+            pcall(function() Combat.TargetHUD.ScreenGui:Destroy() end)
+            Combat.TargetHUD.ScreenGui = nil
+        end
     
         for _, conn in ipairs(Combat.Connections) do
             conn:Disconnect()

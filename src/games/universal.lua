@@ -14,6 +14,28 @@ function Universal.Init(UI, Config, Notifications)
         Content = "No specialized script detected for PlaceId: " .. tostring(game.PlaceId) .. ".\nAll universal Combat, Visuals, Movement, and Utility features are operational."
     })
 
+    gameTab:AddSection("🎯 Target HUD Controls")
+
+    gameTab:AddToggle("TargetHUDToggle", {
+        Title = "Enable Target HUD",
+        Default = false,
+        Callback = function(val)
+            getgenv().targethud.enabled = val
+        end
+    })
+
+    gameTab:AddSlider("TargetHUDDistance", {
+        Title = "Detection Distance",
+        Min = 1,
+        Max = 50,
+        Default = 15,
+        Callback = function(val)
+            getgenv().targethud.maxDistance = val
+        end
+    })
+
+    gameTab:AddSection("🛠️ Player Utilities")
+
     gameTab:AddButton({
         Title = "Bypass Clip Through Doors (Local TP)",
         Callback = function()
