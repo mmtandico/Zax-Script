@@ -1,6 +1,6 @@
 --[[
     Zxscript - Bundled Standalone Distribution
-    Generated: 2026-08-24T10:30:34.426Z
+    Generated: 2026-08-24T10:32:26.799Z
 ]]
 
 local __modules = {}
@@ -1162,6 +1162,7 @@ __modules["games/10563114921"] = function()
         
         ["Sakura Dragon"] = "CHERRY BLOSSOM",
         ["Kitsune"] = "CHERRY BLOSSOM",
+        ["Oni Tiger"] = "CHERRY BLOSSOM",
         
         ["Unicorn"] = "SPECIAL",
     }

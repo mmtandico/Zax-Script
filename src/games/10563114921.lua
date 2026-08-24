@@ -244,6 +244,7 @@ StealAnEgg.EggZones = {
     
     ["Sakura Dragon"] = "CHERRY BLOSSOM",
     ["Kitsune"] = "CHERRY BLOSSOM",
+    ["Oni Tiger"] = "CHERRY BLOSSOM",
     
     ["Unicorn"] = "SPECIAL",
 }

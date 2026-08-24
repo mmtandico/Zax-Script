@@ -1,6 +1,7 @@
 /**
  * Steal an Egg - Real-Time Egg Spawn Predictor Application Logic
  * Official Zone Mapping: COSMIC, PREHISTORIC, ABYSS, VOLCANO, SNOW, JUNGLE, CHERRY BLOSSOM.
+ * Includes Cherry Blossom Update: Oni Tiger (Eternal) & Kitsune (Divine).
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -40,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `in ${hours} hours`;
     }
 
-    // Official Steal an Egg Zone & Egg Database
+    // Official Steal an Egg Zone & Egg Database (Updated with Cherry Blossom Pets)
     const eggDatabase = {
         Secret: [
             { name: "Tralaledon", zone: "PREHISTORIC", zoneCss: "prehistoric", cycleSec: 2100, offsetSec: 780 },
@@ -53,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { name: "Kraken", zone: "ABYSS", zoneCss: "abyss", cycleSec: 33600, offsetSec: 32700 }
         ],
         Eternal: [
+            { name: "Oni Tiger", zone: "CHERRY BLOSSOM", zoneCss: "cherry-blossom", cycleSec: 8400, offsetSec: 7500 },
             { name: "Mosasaurus", zone: "PREHISTORIC", zoneCss: "prehistoric", cycleSec: 10500, offsetSec: 9600 },
             { name: "Eternal Lunar Dragon", zone: "COSMIC", zoneCss: "cosmic", cycleSec: 22200, offsetSec: 21300 },
             { name: "Dragon", zone: "VOLCANO", zoneCss: "volcano", cycleSec: 24000, offsetSec: 23100 },
@@ -61,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { name: "Ice Dragon", zone: "SNOW", zoneCss: "snow", cycleSec: 65400, offsetSec: 64500 }
         ],
         Divine: [
-            { name: "Sakura Dragon (Cherry Blossom Special)", zone: "CHERRY BLOSSOM", zoneCss: "cherry-blossom", cycleSec: 14400, offsetSec: 13500 },
+            { name: "Kitsune", zone: "CHERRY BLOSSOM", zoneCss: "cherry-blossom", cycleSec: 14400, offsetSec: 13500 },
             { name: "Unicorn", zone: "SPECIAL", zoneCss: "special", cycleSec: 21900, offsetSec: 21000 }
         ]
     };
