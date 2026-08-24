@@ -1,10 +1,7 @@
 --[[
-    Zxscript - Official Universal Loader
-    Supports game routing (PlaceId & GameId), key passing, cache-busting,
-    and double-execution prevention.
-    
-    Usage:
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/mmtandico/Zax-Script/main/loader.lua"))()
+    Zxscript - Official Remote Loader
+    Architecture modeled directly after BFLoader reference.
+    Supports 40+ game routes, key handling, cache-busting, and state management.
 ]]
 
 if not game:IsLoaded() then
@@ -53,32 +50,65 @@ local function setKey(key)
     end
 end
 
--- Base Repository URL for distribution payload
+-- Primary distribution payload URL
 local BASE_PAYLOAD_URL = "https://raw.githubusercontent.com/mmtandico/Zax-Script/main/dist/hub.lua"
 
--- Route table for supported games (checks PlaceId or GameId)
 local routes = {
+    [9910245722] = { "Iron Soul", BASE_PAYLOAD_URL },
+    [7856269159] = { "Anime Overload", BASE_PAYLOAD_URL },
+    [97365843755210] = { "Cut Grass For Brainrots", BASE_PAYLOAD_URL },
+    [124473577469410] = { "Be a Lucky Block", BASE_PAYLOAD_URL },
+    [82397737462020] = { "Shrink for Brainrot", BASE_PAYLOAD_URL },
+    [7798947148] = { "Anime Final Quest", BASE_PAYLOAD_URL },
+    [77393318863643] = { "Aura Ascension Ahh game", BASE_PAYLOAD_URL },
+    [105626692504093] = { "Be a Brainrot", BASE_PAYLOAD_URL },
+    [8966502575] = { "Anime Reversal", BASE_PAYLOAD_URL },
+    [112259901434347] = { "+1 Speed be a Lucky Block!", BASE_PAYLOAD_URL },
+    [9802644580] = { "Summon Heroes", BASE_PAYLOAD_URL },
+    [8937254139] = { "Dungeon Hunters", BASE_PAYLOAD_URL },
+    [9833422940] = { "Unbox a Factory", BASE_PAYLOAD_URL },
+    [9073513091] = { "Anime Apocalypse", BASE_PAYLOAD_URL },
+    [7395930870] = { "Sell Lemons", BASE_PAYLOAD_URL },
+    [10032271327] = { "Anime World Fighters", BASE_PAYLOAD_URL },
+    [138064211947107] = { "Unbox a Car", BASE_PAYLOAD_URL },
+    [9610561918] = { "Knife Farm", BASE_PAYLOAD_URL },
+    [10004244222] = { "Kick a Lucky Block", BASE_PAYLOAD_URL },
+    [9792947201] = { "Slime RNG", BASE_PAYLOAD_URL },
+    [10016841656] = { "Noob Tower Defense", BASE_PAYLOAD_URL },
+    [6409513651] = { "Anime Warrior III", BASE_PAYLOAD_URL },
+    [10039338037] = { "Build A Ring Farm", BASE_PAYLOAD_URL },
+    [9348272796] = { "SZA", BASE_PAYLOAD_URL },
+    [7585079192] = { "Anime Story 2", BASE_PAYLOAD_URL },
+    [10093833731] = { "Broken Blade", BASE_PAYLOAD_URL },
+    [10148434559] = { "Lucky Block Rush", BASE_PAYLOAD_URL },
+    [10168229420] = { "My Gaming Cafe", BASE_PAYLOAD_URL },
+    [102072869879193] = { "Anime Astral", BASE_PAYLOAD_URL },
+    [8356066619] = { "Anime Squadron", BASE_PAYLOAD_URL },
+    [10200395747] = { "Grow a Garden 2", BASE_PAYLOAD_URL },
+    [9826885587] = { "Evomon", BASE_PAYLOAD_URL },
+    [10204207151] = { "Catch a Brainrot", BASE_PAYLOAD_URL },
+    [7613921865] = { "Anime Expedition", BASE_PAYLOAD_URL },
+    [10131390815] = { "Throw a Coin", BASE_PAYLOAD_URL },
+    [8841437826] = { "Capybara vs Plants", BASE_PAYLOAD_URL },
+    [8959257868] = { "Unscathed", BASE_PAYLOAD_URL },
+    [10563114921] = { "Steal an Egg", BASE_PAYLOAD_URL },
+    [107778070777162] = { "Steal an Egg", BASE_PAYLOAD_URL },
+    [8946565814] = { "Anime Origins", BASE_PAYLOAD_URL },
     [286090429] = { "Arsenal", BASE_PAYLOAD_URL },
     [2753915549] = { "Blox Fruits (Sea 1)", BASE_PAYLOAD_URL },
     [4442272183] = { "Blox Fruits (Sea 2)", BASE_PAYLOAD_URL },
     [7449423635] = { "Blox Fruits (Sea 3)", BASE_PAYLOAD_URL },
-    [10563114921] = { "Steal an Egg", BASE_PAYLOAD_URL },
-    [107778070777162] = { "Steal an Egg", BASE_PAYLOAD_URL },
 }
 
--- Resolve route by PlaceId or GameId, or default to Universal
 local route = routes[game.PlaceId] or routes[game.GameId] or { "Universal Hub", BASE_PAYLOAD_URL }
 
--- Handle script keys if passed
 setKey(pick("script_key", "SCRIPT_KEY"))
 
--- Prevent double execution using global loader state
 local state = (genv and genv.ZxscriptLoaderState) or { loaded = {} }
 if genv then
     genv.ZxscriptLoaderState = state
 end
 
--- If already running this route name, clear old state if re-executing
 if state.loaded[route[1]] then
     pcall(function()
         if genv and genv.ZxscriptCleanup then
@@ -88,23 +118,9 @@ if state.loaded[route[1]] then
 end
 state.loaded[route[1]] = true
 
--- Fetch and execute distribution bundle with cache busting
 local targetUrl = route[2] .. "?t=" .. tostring(os.time())
 local ok, src = pcall(game.HttpGet, game, targetUrl)
-
-if ok and src and #src > 100 then
-    local compiled, loadErr = loadstring(src)
-    if compiled then
-        local runOk, runErr = pcall(compiled)
-        if not runOk then
-            warn("[Zxscript] Runtime error: " .. tostring(runErr))
-            state.loaded[route[1]] = nil
-        end
-    else
-        warn("[Zxscript] Compilation error: " .. tostring(loadErr))
-        state.loaded[route[1]] = nil
-    end
-else
-    warn("[Zxscript] Failed to download script hub from: " .. tostring(route[2]))
-    state.loaded[route[1]] = nil
+if ok and src and pcall(loadstring(src)) then
+    return
 end
+state.loaded[route[1]] = nil
