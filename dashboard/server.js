@@ -31,6 +31,13 @@ let liveGameState = {
     lastSyncTimestamp: Date.now()
 };
 
+let lastLiveSpawn = {
+    name: "Tralaledon",
+    rarity: "Secret",
+    zone: "PREHISTORIC",
+    spawnedAt: new Date().toISOString()
+};
+
 // In-Memory Cache for 0ms Latency Responses
 let cachedRobloxStatus = {
     success: true,
@@ -41,6 +48,8 @@ let cachedRobloxStatus = {
     activePlayers: 793084,
     totalVisits: 299751526,
     servers: [],
+    liveGameState,
+    lastLiveSpawn,
     predictions: calculateEggWavePredictions()
 };
 
@@ -66,26 +75,18 @@ function fetchJson(url) {
     });
 }
 
-/**
- * 5-Minute (300-Second) Day/Night Wave Predictor Engine
- * - Total Day/Night Cycle = 300 Seconds (5 Minutes)
- * - Day Phase = 0s to 180s (3 Minutes)
- * - Night Phase = 180s to 300s (2 Minutes) -> High-Tier Spawns Trigger Here!
- */
 function calculateEggWavePredictions() {
     const nowSec = Math.floor(Date.now() / 1000);
-    const cycleLength = 300; // 5 Minutes per full Day/Night cycle
+    const cycleLength = 300;
 
-    // Current position inside 300s cycle
     const currentCycleSec = nowSec % cycleLength;
-    const isNight = currentCycleSec >= 180; // Night phase starts at 3m (180s)
+    const isNight = currentCycleSec >= 180;
     const nextNightIn = isNight ? 0 : (180 - currentCycleSec);
     const nextCycleResetIn = cycleLength - currentCycleSec;
 
-    // Rare Spawn Intervals (Aligned to 5-Min Day/Night Cycles)
-    const divineInterval = 600;   // Every 2 Cycles (10 Min)
-    const secretInterval = 900;   // Every 3 Cycles (15 Min)
-    const eternalInterval = 1800;  // Every 6 Cycles (30 Min)
+    const divineInterval = 600;
+    const secretInterval = 900;
+    const eternalInterval = 1800;
 
     const nextDivine = divineInterval - (nowSec % divineInterval);
     const nextSecret = secretInterval - (nowSec % secretInterval);
@@ -104,31 +105,6 @@ function calculateEggWavePredictions() {
         nextHighTierWave: nextEternal < nextSecret ? (nextEternal < nextDivine ? "Eternal" : "Divine") : (nextSecret < nextDivine ? "Secret" : "Divine"),
     };
 }
-
-// Background Worker to Poll Roblox API every 4 Seconds
-async function refreshRobloxCache() {
-    const gameInfo = await fetchJson(`https://games.roblox.com/v1/games?universeIds=${UNIVERSE_ID}`);
-    const serverList = await fetchJson(`https://games.roblox.com/v1/games/${PLACE_ID}/servers/Public?limit=10`);
-
-    const gameData = (gameInfo && gameInfo.data && gameInfo.data[0]) ? gameInfo.data[0] : {};
-    const activePlayers = gameData.playing || cachedRobloxStatus.activePlayers;
-    const totalVisits = gameData.visits || cachedRobloxStatus.totalVisits;
-    const gameName = gameData.name || "Steal An Egg";
-
-    const servers = (serverList && serverList.data) ? serverList.data.map(s => ({
-        id: s.id,
-        playing: s.playing,
-        maxPlayers: s.maxPlayers,
-        fps: Math.round(s.fps || 60),
-        ping: s.ping || 45
-    })) : cachedRobloxStatus.servers;
-
-let lastLiveSpawn = {
-    name: "Tralaledon",
-    rarity: "Secret",
-    zone: "PREHISTORIC",
-    spawnedAt: new Date().toISOString()
-};
 
 // Background Worker to Poll Roblox API every 4 Seconds
 async function refreshRobloxCache() {
@@ -192,16 +168,12 @@ const server = http.createServer((req, res) => {
         });
         return;
     }
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true }));
-        });
-        return;
-    }
 
     // Handle API Status Route
     if (pathname === '/api/roblox-status' || pathname === '/api/inspect') {
         cachedRobloxStatus.predictions = calculateEggWavePredictions();
         cachedRobloxStatus.liveGameState = liveGameState;
+        cachedRobloxStatus.lastLiveSpawn = lastLiveSpawn;
 
         res.writeHead(200, { 
             'Content-Type': 'application/json',
@@ -239,8 +211,8 @@ server.on('error', (err) => {
 
 server.listen(PORT, () => {
     console.log(`================================================================`);
-    console.log(`⚡ Steal an Egg - 5-Min Day/Night Wave Predictor Server Online!`);
-    console.log(`🌙 Engine: 300s Day/Night Cycle Wave Synchronization`);
-    console.log(`🌐 Instant 0ms Dashboard Access at: http://localhost:${PORT}`);
+    console.log(`⚡ Steal an Egg - Real-Time PC Predictor Server Online!`);
+    console.log(`📡 Connected Live to Roblox APIs (Universe: ${UNIVERSE_ID} | Place: ${PLACE_ID})`);
+    console.log(`🌐 Access Dashboard at: http://localhost:${PORT}`);
     console.log(`================================================================`);
 });
