@@ -1,221 +1,128 @@
 /**
- * Steal an Egg - Real-Time PC Predictor & Tracker Application
- * Directly queries local server endpoint /api/roblox-status (0ms cache response).
- * Smooth 1-second ticker loop for zero-delay countdowns.
+ * Steal an Egg - Real-Time Egg Spawn Predictor Application Logic
+ * Replicates the exact reference structure with exact egg names by tier (Secret, Eternal, Divine).
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     let soundEnabled = true;
-    let currentPredictions = null;
 
-    // DOM Elements - Next Up Hero
-    const nextUpBadge = document.getElementById('nextUpBadge');
+    // DOM Elements
     const nextUpName = document.getElementById('nextUpName');
-    const nextUpClockTime = document.getElementById('nextUpClockTime');
-    const timerMin = document.getElementById('timerMin');
-    const timerSec = document.getElementById('timerSec');
-    const nextUpLocation = document.getElementById('nextUpLocation');
+    const nextUpTime = document.getElementById('nextUpTime');
+    const nextUpRelative = document.getElementById('nextUpRelative');
 
-    // DOM Elements - Stats
-    const statActivePlayers = document.getElementById('statActivePlayers');
-    const statEternalTime = document.getElementById('statEternalTime');
-    const statSecretTime = document.getElementById('statSecretTime');
-    const statDivineTime = document.getElementById('statDivineTime');
-
-    // DOM Elements - Table & Cards
-    const separatedPredictionsBody = document.getElementById('separatedPredictionsBody');
+    const secretList = document.getElementById('secretList');
+    const eternalList = document.getElementById('eternalList');
+    const divineList = document.getElementById('divineList');
     const soundToggleBtn = document.getElementById('soundToggleBtn');
 
-    // Individual Cards DOM
-    const eternalEggName = document.getElementById('eternalEggName');
-    const eternalClockTime = document.getElementById('eternalClockTime');
-    const eternalCountdown = document.getElementById('eternalCountdown');
-    const eternalLocation = document.getElementById('eternalLocation');
-
-    const secretEggName = document.getElementById('secretEggName');
-    const secretClockTime = document.getElementById('secretClockTime');
-    const secretCountdown = document.getElementById('secretCountdown');
-    const secretLocation = document.getElementById('secretLocation');
-
-    const divineEggName = document.getElementById('divineEggName');
-    const divineClockTime = document.getElementById('divineClockTime');
-    const divineCountdown = document.getElementById('divineCountdown');
-    const divineLocation = document.getElementById('divineLocation');
-
-    // 12-Hour AM/PM Time Formatter
-    function format12Hour(date = new Date()) {
-        return date.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: true
-        });
+    // 12-Hour AM/PM Time Formatter (e.g., "6:30 pm", "12:25 am")
+    function format12HourTime(date) {
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        const strMinutes = String(minutes).padStart(2, '0');
+        return `${hours}:${strMinutes} ${ampm}`;
     }
 
-    function formatShort12Hour(date = new Date()) {
-        return date.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-    }
-
-    function formatRemaining(seconds) {
-        if (seconds < 0) seconds = 0;
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${m}m ${String(s).padStart(2, '0')}s`;
-    }
-
-    // Audio Alert Synth using Web Audio API
-    function playAudioAlert(rarity) {
-        if (!soundEnabled) return;
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.type = (rarity === 'Eternal' || rarity === 'Secret') ? 'sawtooth' : 'sine';
-            const baseFreq = rarity === 'Eternal' ? 880 : (rarity === 'Secret' ? 660 : 520);
-            osc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
-
-            gain.gain.setValueAtTime(0.3, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc.start();
-            osc.stop(ctx.currentTime + 0.6);
-        } catch (e) {
-            console.warn('Audio Context error:', e);
+    // Relative Time Formatter (e.g., "in 13 minutes", "in 2 hours", "in 6 hours")
+    function formatRelativeTime(seconds) {
+        if (seconds <= 60) return 'in 1 minute';
+        const mins = Math.floor(seconds / 60);
+        if (mins < 60) {
+            return `in ${mins} minutes`;
         }
+        const hours = Math.floor(mins / 60);
+        if (hours === 1) return 'in 1 hour';
+        return `in ${hours} hours`;
     }
 
-    const eggDefinitions = {
-        Eternal: { name: "Eternal Phoenix Egg", location: "Volcano Spire Peak (Zone 4)", conf: "99.8%" },
-        Secret: { name: "Secret Celestial Galaxy Egg", location: "Sky Kingdom Altar (Zone 3)", conf: "99.5%" },
-        Divine: { name: "Divine Abyssal Pearl Egg", location: "Ocean Abyssal Shrine (Zone 2)", conf: "98.9%" },
-        Mythic: { name: "Mythic Sunfire Dragon Egg", location: "Forest Grove Altar (Zone 1)", conf: "97.4%" }
+    // Exact Egg Definitions & Intervals from Reference Image
+    const eggDatabase = {
+        Secret: [
+            { name: "Tralaledon", cycleSec: 2100, offsetSec: 780 },
+            { name: "TyrannosaurusRex", cycleSec: 8100, offsetSec: 7200 },
+            { name: "Warden", cycleSec: 9000, offsetSec: 8100 },
+            { name: "Cave Dragon", cycleSec: 10200, offsetSec: 9300 },
+            { name: "Alien Skeleton Boss", cycleSec: 11700, offsetSec: 10800 },
+            { name: "Cerberus", cycleSec: 17400, offsetSec: 16500 },
+            { name: "Yeti", cycleSec: 23400, offsetSec: 22500 },
+            { name: "Kraken", cycleSec: 33600, offsetSec: 32700 }
+        ],
+        Eternal: [
+            { name: "Mosasaurus", cycleSec: 10500, offsetSec: 9600 },
+            { name: "Eternal Lunar Dragon", cycleSec: 22200, offsetSec: 21300 },
+            { name: "Dragon", cycleSec: 24000, offsetSec: 23100 },
+            { name: "El Maja", cycleSec: 32100, offsetSec: 31200 },
+            { name: "Ascended Vermilion Phoenix", cycleSec: 38100, offsetSec: 37200 },
+            { name: "Ice Dragon", cycleSec: 65400, offsetSec: 64500 }
+        ],
+        Divine: [
+            { name: "Unicorn", cycleSec: 21900, offsetSec: 21000 }
+        ]
     };
 
-    function updatePredictionsDisplay() {
-        // Calculate real-time predictions based on local epoch time for zero latency
-        const now = Math.floor(Date.now() / 1000);
-
-        const eternalIn = 3600 - (now % 3600);
-        const secretIn = 1500 - (now % 1500);
-        const divineIn = 600 - (now % 600);
-        const mythicIn = 240 - (now % 240);
-
+    // Calculate predictions for all items
+    function updatePredictor() {
         const nowMs = Date.now();
-        const tiersList = [
-            { tier: "Eternal", rem: eternalIn, def: eggDefinitions.Eternal },
-            { tier: "Secret", rem: secretIn, def: eggDefinitions.Secret },
-            { tier: "Divine", rem: divineIn, def: eggDefinitions.Divine },
-            { tier: "Mythic", rem: mythicIn, def: eggDefinitions.Mythic }
-        ];
+        const nowSec = Math.floor(nowMs / 1000);
 
-        tiersList.sort((a, b) => a.rem - b.rem);
+        let allPredicted = [];
 
-        // 1. Update NEXT UP HERO CARD
-        const nextUp = tiersList[0];
-        const nextUpDate = new Date(nowMs + (nextUp.rem * 1000));
-        
-        if (nextUpBadge) {
-            nextUpBadge.textContent = nextUp.tier + " EGG";
-            nextUpBadge.className = "next-up-badge " + nextUp.tier.toLowerCase();
-        }
-        if (nextUpName) nextUpName.textContent = nextUp.def.name;
-        if (nextUpClockTime) nextUpClockTime.textContent = format12Hour(nextUpDate);
-        if (nextUpLocation) nextUpLocation.textContent = nextUp.def.location;
+        // Calculate for each tier
+        const tiers = ['Secret', 'Eternal', 'Divine'];
 
-        const min = Math.floor(nextUp.rem / 60);
-        const sec = nextUp.rem % 60;
-        if (timerMin) timerMin.textContent = String(min).padStart(2, '0');
-        if (timerSec) timerSec.textContent = String(sec).padStart(2, '0');
+        tiers.forEach(tier => {
+            const listEl = tier === 'Secret' ? secretList : (tier === 'Eternal' ? eternalList : divineList);
+            if (!listEl) return;
 
-        // 2. Update Sidebar Stat Times
-        const eternalTier = tiersList.find(t => t.tier === "Eternal");
-        const secretTier = tiersList.find(t => t.tier === "Secret");
-        const divineTier = tiersList.find(t => t.tier === "Divine");
+            listEl.innerHTML = '';
 
-        if (statEternalTime && eternalTier) statEternalTime.textContent = formatShort12Hour(new Date(nowMs + eternalTier.rem * 1000));
-        if (statSecretTime && secretTier) statSecretTime.textContent = formatShort12Hour(new Date(nowMs + secretTier.rem * 1000));
-        if (statDivineTime && divineTier) statDivineTime.textContent = formatShort12Hour(new Date(nowMs + divineTier.rem * 1000));
+            eggDatabase[tier].forEach(item => {
+                // Calculate next spawn remaining seconds seeded by epoch time
+                const rem = item.cycleSec - ((nowSec + item.offsetSec) % item.cycleSec);
+                const spawnDate = new Date(nowMs + (rem * 1000));
+                const clockStr = format12HourTime(spawnDate);
+                const relStr = formatRelativeTime(rem);
 
-        // 3. Populate Separated Predictions Table
-        if (separatedPredictionsBody) {
-            separatedPredictionsBody.innerHTML = '';
-            tiersList.forEach(item => {
-                const targetDate = new Date(nowMs + (item.rem * 1000));
-                const clock12 = format12Hour(targetDate);
+                allPredicted.push({
+                    tier,
+                    name: item.name,
+                    rem,
+                    clockStr,
+                    relStr
+                });
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><span class="badge-tier ${item.tier.toLowerCase()}">${item.tier}</span></td>
-                    <td><strong>${item.def.name}</strong></td>
-                    <td><strong style="color: #00ffff; font-size: 15px;">${clock12}</strong></td>
-                    <td><span style="color: #ffd700; font-weight: 700;">In ${formatRemaining(item.rem)}</span></td>
-                    <td>${item.def.location}</td>
-                    <td><span style="color: #10b981; font-weight: 600;">${item.def.conf}</span></td>
+                // Create egg row item matching exact reference format
+                const row = document.createElement('div');
+                row.className = 'egg-row';
+                row.innerHTML = `
+                    <span class="egg-name">${item.name}</span>
+                    <span class="dot-sep">-</span>
+                    <span class="time-badge">${clockStr}</span>
+                    <span class="dot-sep">-</span>
+                    <span class="time-badge muted">${relStr}</span>
                 `;
-                separatedPredictionsBody.appendChild(tr);
+                listEl.appendChild(row);
             });
-        }
+        });
 
-        // 4. Update Rarity Cards
-        if (eternalTier) {
-            if (eternalEggName) eternalEggName.textContent = eternalTier.def.name;
-            if (eternalClockTime) eternalClockTime.textContent = format12Hour(new Date(nowMs + eternalTier.rem * 1000));
-            if (eternalCountdown) eternalCountdown.textContent = "In " + formatRemaining(eternalTier.rem);
-            if (eternalLocation) eternalLocation.textContent = eternalTier.def.location;
-        }
+        // Find the absolute Next Up egg across all categories
+        allPredicted.sort((a, b) => a.rem - b.rem);
+        const nextUpItem = allPredicted[0];
 
-        if (secretTier) {
-            if (secretEggName) secretEggName.textContent = secretTier.def.name;
-            if (secretClockTime) secretClockTime.textContent = format12Hour(new Date(nowMs + secretTier.rem * 1000));
-            if (secretCountdown) secretCountdown.textContent = "In " + formatRemaining(secretTier.rem);
-            if (secretLocation) secretLocation.textContent = secretTier.def.location;
-        }
-
-        if (divineTier) {
-            if (divineEggName) divineEggName.textContent = divineTier.def.name;
-            if (divineClockTime) divineClockTime.textContent = format12Hour(new Date(nowMs + divineTier.rem * 1000));
-            if (divineCountdown) divineCountdown.textContent = "In " + formatRemaining(divineTier.rem);
-            if (divineLocation) divineLocation.textContent = divineTier.def.location;
-        }
-
-        if (nextUp.rem <= 3 && !window._lastAlertTime) {
-            window._lastAlertTime = Date.now();
-            playAudioAlert(nextUp.tier);
-            setTimeout(() => { window._lastAlertTime = null; }, 10000);
+        if (nextUpItem) {
+            if (nextUpName) nextUpName.textContent = nextUpItem.name;
+            if (nextUpTime) nextUpTime.textContent = nextUpItem.clockStr;
+            if (nextUpRelative) nextUpRelative.textContent = nextUpItem.relStr;
         }
     }
 
-    // Poll Live Roblox API status in background for player counts
-    async function fetchLiveRobloxStatus() {
-        try {
-            const res = await fetch('/api/roblox-status');
-            const data = await res.json();
-
-            if (data && data.success) {
-                if (statActivePlayers && data.activePlayers) {
-                    statActivePlayers.textContent = Number(data.activePlayers).toLocaleString();
-                }
-            }
-        } catch (e) {
-            console.warn('API sync warning:', e);
-        }
-    }
-
-    // Smooth 1-second UI local ticker loop (Zero Delay)
-    setInterval(updatePredictionsDisplay, 1000);
-    updatePredictionsDisplay();
-
-    // Poll background server API every 3 seconds
-    setInterval(fetchLiveRobloxStatus, 3000);
-    fetchLiveRobloxStatus();
+    // Run ticker loop every second
+    setInterval(updatePredictor, 1000);
+    updatePredictor();
 
     soundToggleBtn.addEventListener('click', () => {
         soundEnabled = !soundEnabled;
