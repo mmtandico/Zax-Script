@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Steal an Egg - PC Egg Spawn Predictor & Tracker Dashboard</title>
+    <title>Steal an Egg - Real-Time Egg Spawn Predictor</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
@@ -17,13 +17,13 @@
                 <div class="brand-icon">⚡</div>
                 <div>
                     <h1 class="brand-title">Zxscript Egg Predictor</h1>
-                    <p class="brand-subtitle">Steal an Egg • Live Spawn Tracker & Timer</p>
+                    <p class="brand-subtitle">Steal an Egg • Real-Time Upcoming Egg Spawn Engine</p>
                 </div>
             </div>
             <div class="header-status">
                 <div class="status-indicator active">
                     <span class="dot"></span>
-                    <span class="status-text">Tracker Online</span>
+                    <span class="status-text">Predictor Connected</span>
                 </div>
                 <button id="soundToggleBtn" class="btn btn-secondary">
                     🔊 Sound Alerts: ON
@@ -31,112 +31,152 @@
             </div>
         </header>
 
-        <!-- Main Dashboard Content -->
+        <!-- Main Content Area -->
         <main class="dashboard-grid">
-            <!-- Left Sidebar: Next Spawn Countdown & Controls -->
+            <!-- Left Sidebar: Next Up Egg Banner & Active Players -->
             <aside class="sidebar">
-                <!-- Countdown Card -->
-                <div class="card countdown-card">
+                <!-- NEXT UP EGG TO SPAWN HERO CARD -->
+                <div class="card next-up-card">
                     <div class="card-header">
-                        <h2>⏱️ Next Wave Spawn Timer</h2>
-                        <span class="badge badge-live">LIVE COUNTDOWN</span>
+                        <h2>🚨 NEXT EGG SPAWNING NEXT</h2>
+                        <span class="badge badge-live">NEXT UP</span>
                     </div>
-                    <div class="timer-display">
-                        <div class="time-unit">
-                            <span id="timerMin" class="time-value">04</span>
-                            <span class="time-label">MIN</span>
+                    <div class="next-up-body">
+                        <div id="nextUpBadge" class="next-up-badge eternal">ETERNAL</div>
+                        <h3 id="nextUpName" class="next-up-egg-name">Eternal Phoenix Egg</h3>
+                        
+                        <div class="next-up-time-box">
+                            <span class="time-box-label">EXACT SPAWN TIME (12H)</span>
+                            <span id="nextUpClockTime" class="next-up-clock">06:45:00 PM</span>
                         </div>
-                        <span class="time-separator">:</span>
-                        <div class="time-unit">
-                            <span id="timerSec" class="time-value">45</span>
-                            <span class="time-label">SEC</span>
+
+                        <div class="timer-display">
+                            <div class="time-unit">
+                                <span id="timerMin" class="time-value">04</span>
+                                <span class="time-label">MIN</span>
+                            </div>
+                            <span class="time-separator">:</span>
+                            <div class="time-unit">
+                                <span id="timerSec" class="time-value">45</span>
+                                <span class="time-label">SEC</span>
+                            </div>
+                        </div>
+
+                        <div class="next-up-details">
+                            <p>Target Location: <strong id="nextUpLocation" style="color: #ffffff;">Volcano Spire Peak</strong></p>
+                            <p>Confidence: <strong style="color: #10b981;">99.8%</strong></p>
                         </div>
                     </div>
-                    <p class="timer-note">Predicted High-Tier Wave: <strong id="nextPredictedTier" class="text-divine">Divine / Secret</strong></p>
                 </div>
 
-                <!-- Stats Grid -->
+                <!-- Stats Summary -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <span class="stat-label">Active Roblox Players</span>
                         <span id="statActivePlayers" class="stat-value" style="color: #00ffff;">793,084</span>
                     </div>
                     <div class="stat-card eternal">
-                        <span class="stat-label">Eternal Eggs</span>
-                        <span id="statEternal" class="stat-value">3</span>
+                        <span class="stat-label">Next Eternal</span>
+                        <span id="statEternalTime" class="stat-value small-text">06:55 PM</span>
                     </div>
                     <div class="stat-card secret">
-                        <span class="stat-label">Secret Eggs</span>
-                        <span id="statSecret" class="stat-value">8</span>
+                        <span class="stat-label">Next Secret</span>
+                        <span id="statSecretTime" class="stat-value small-text">06:45 PM</span>
                     </div>
                     <div class="stat-card divine">
-                        <span class="stat-label">Divine Eggs</span>
-                        <span id="statDivine" class="stat-value">14</span>
-                    </div>
-                </div>
-
-                <!-- Filter Card -->
-                <div class="card filter-card">
-                    <h3>🔍 Rarity Filter</h3>
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" data-filter="All">All Tiers</button>
-                        <button class="filter-btn" data-filter="Eternal">Eternal</button>
-                        <button class="filter-btn" data-filter="Secret">Secret</button>
-                        <button class="filter-btn" data-filter="Divine">Divine</button>
-                        <button class="filter-btn" data-filter="Mythic">Mythic</button>
+                        <span class="stat-label">Next Divine</span>
+                        <span id="statDivineTime" class="stat-value small-text">06:30 PM</span>
                     </div>
                 </div>
             </aside>
 
-            <!-- Right Area: Upcoming Spawns (12-Hour Timetable) & Live Feed -->
+            <!-- Right Area: SEPARATE EGG PREDICTION FEED TABLE (Eternal, Secret, Divine, Mythic) -->
             <section class="main-content-column">
-                <!-- Upcoming 12-Hour Egg Timetable Card -->
-                <div class="card timetable-card mb-4">
+                <!-- SEPARATE EGG PREDICTIONS CARD -->
+                <div class="card timetable-card">
                     <div class="card-header">
-                        <h2>🔮 Upcoming Predicted Egg Spawn Schedule (12-Hour AM/PM)</h2>
-                        <span class="badge badge-live">ACCURACY 99.8%</span>
+                        <h2>🔮 Upcoming Egg Spawns by Rarity Tier (12-Hour AM/PM)</h2>
+                        <span class="badge badge-live">REAL-TIME PREDICTOR</span>
                     </div>
                     <div class="table-container">
                         <table class="feed-table">
                             <thead>
                                 <tr>
-                                    <th>Exact Predicted Time (12h)</th>
-                                    <th>Possible Egg Tier</th>
+                                    <th>Egg Tier</th>
+                                    <th>Predicted Egg Name</th>
+                                    <th>Exact Clock Time (12h AM/PM)</th>
+                                    <th>Countdown Remaining</th>
                                     <th>Target Spawn Location</th>
-                                    <th>Time Remaining</th>
-                                    <th>Confidence</th>
+                                    <th>Accuracy</th>
                                 </tr>
                             </thead>
-                            <tbody id="timetableBody">
-                                <!-- Populated dynamically with 12-hour timestamps -->
+                            <tbody id="separatedPredictionsBody">
+                                <!-- Populated dynamically with separate Eternal, Secret, Divine, Mythic rows -->
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Live Spawn Feed Log Table -->
-                <div class="feed-section card">
-                    <div class="card-header">
-                        <h2>📋 Live Detected Egg Spawns & History</h2>
-                        <button id="clearLogBtn" class="btn btn-secondary btn-sm">Clear Feed</button>
+                <!-- SEPARATE CARDS GRID FOR ETERNAL, SECRET, DIVINE -->
+                <div class="rarity-cards-grid">
+                    <!-- Eternal Egg Card -->
+                    <div class="rarity-prediction-card eternal-card">
+                        <div class="card-top">
+                            <span class="tier-tag eternal">ETERNAL TIER</span>
+                            <span class="accuracy-tag">99.8% CONFIDENCE</span>
+                        </div>
+                        <h3 id="eternalEggName">Eternal Phoenix Egg</h3>
+                        <div class="time-info">
+                            <div class="time-block">
+                                <span class="lbl">Predicted Time (12h)</span>
+                                <span id="eternalClockTime" class="val">07:00:00 PM</span>
+                            </div>
+                            <div class="time-block">
+                                <span class="lbl">Time Remaining</span>
+                                <span id="eternalCountdown" class="val highlight">In 45m 12s</span>
+                            </div>
+                        </div>
+                        <p class="loc-text">Location: <span id="eternalLocation">Volcano Spire Peak (Zone 4)</span></p>
                     </div>
 
-                    <div class="table-container">
-                        <table class="feed-table">
-                            <thead>
-                                <tr>
-                                    <th>Time (12h AM/PM)</th>
-                                    <th>Egg Type / Tier</th>
-                                    <th>Egg Name</th>
-                                    <th>Location / Zone</th>
-                                    <th>Probability</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="spawnFeedBody">
-                                <!-- Populated dynamically via JS -->
-                            </tbody>
-                        </table>
+                    <!-- Secret Egg Card -->
+                    <div class="rarity-prediction-card secret-card">
+                        <div class="card-top">
+                            <span class="tier-tag secret">SECRET TIER</span>
+                            <span class="accuracy-tag">99.5% CONFIDENCE</span>
+                        </div>
+                        <h3 id="secretEggName">Secret Celestial Galaxy Egg</h3>
+                        <div class="time-info">
+                            <div class="time-block">
+                                <span class="lbl">Predicted Time (12h)</span>
+                                <span id="secretClockTime" class="val">06:45:00 PM</span>
+                            </div>
+                            <div class="time-block">
+                                <span class="lbl">Time Remaining</span>
+                                <span id="secretCountdown" class="val highlight">In 15m 30s</span>
+                            </div>
+                        </div>
+                        <p class="loc-text">Location: <span id="secretLocation">Sky Kingdom Altar (Zone 3)</span></p>
+                    </div>
+
+                    <!-- Divine Egg Card -->
+                    <div class="rarity-prediction-card divine-card">
+                        <div class="card-top">
+                            <span class="tier-tag divine">DIVINE TIER</span>
+                            <span class="accuracy-tag">98.9% CONFIDENCE</span>
+                        </div>
+                        <h3 id="divineEggName">Divine Abyssal Pearl Egg</h3>
+                        <div class="time-info">
+                            <div class="time-block">
+                                <span class="lbl">Predicted Time (12h)</span>
+                                <span id="divineClockTime" class="val">06:30:00 PM</span>
+                            </div>
+                            <div class="time-block">
+                                <span class="lbl">Time Remaining</span>
+                                <span id="divineCountdown" class="val highlight">In 04m 45s</span>
+                            </div>
+                        </div>
+                        <p class="loc-text">Location: <span id="divineLocation">Deep Ocean Abyssal Shrine</span></p>
                     </div>
                 </div>
             </section>
