@@ -34,6 +34,7 @@ local Hub = {
         [4442272183] = "Blox Fruits (Sea 2)",
         [7449423635] = "Blox Fruits (Sea 3)",
         [10563114921] = "Steal an Egg",
+        [107778070777162] = "Steal an Egg",
     }
 }
 
@@ -54,10 +55,13 @@ function Hub.Start()
     -- 3. Initialize User Interface
     local uiInstance = UI.Init(Hub.Name, "v" .. Hub.Version .. " | " .. Utils.GetExecutor())
 
-    -- 4. Route Game-Specific Module
-    local placeId = game.PlaceId
-    local gameModuleName = tostring(placeId)
-    local gameModule = script.games:FindFirstChild(gameModuleName) or script.games:FindFirstChild("universal")
+    -- 4. Route Game-Specific Module (checks PlaceId then GameId then universal)
+    local placeIdStr = tostring(game.PlaceId)
+    local gameIdStr = tostring(game.GameId)
+    
+    local gameModule = script.games:FindFirstChild(placeIdStr) 
+        or script.games:FindFirstChild(gameIdStr) 
+        or script.games:FindFirstChild("universal")
 
     if gameModule then
         local success, mod = pcall(function()
@@ -68,7 +72,7 @@ function Hub.Start()
             pcall(function()
                 mod.Init(uiInstance, Config, Notifications)
             end)
-            print(string.format("[%s] Loaded game module for PlaceId: %s", Hub.Name, tostring(placeId)))
+            print(string.format("[%s] Loaded game module for ID: %s (%s)", Hub.Name, placeIdStr, Hub.SupportedGames[game.PlaceId] or Hub.SupportedGames[game.GameId] or "Universal"))
         end
     end
 

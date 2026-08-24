@@ -1,6 +1,6 @@
 --[[
     Zxscript - Bundled Standalone Distribution
-    Generated: 2026-08-24T08:53:00.402Z
+    Generated: 2026-08-24T08:55:00.199Z
 ]]
 
 local __modules = {}
@@ -1975,6 +1975,7 @@ do
             [4442272183] = "Blox Fruits (Sea 2)",
             [7449423635] = "Blox Fruits (Sea 3)",
             [10563114921] = "Steal an Egg",
+            [107778070777162] = "Steal an Egg",
         }
     }
     
@@ -1995,11 +1996,11 @@ do
         -- 3. Initialize User Interface
         local uiInstance = UI.Init(Hub.Name, "v" .. Hub.Version .. " | " .. Utils.GetExecutor())
     
-        -- 4. Route Game-Specific Module
-        local placeId = game.PlaceId
-        local gameModuleName = tostring(placeId)
-        local gameModuleNameKey = "games/" .. gameModuleName
-        local gameModule = __modules[gameModuleNameKey] and gameModuleNameKey or "games/universal"
+        -- 4. Route Game-Specific Module (checks PlaceId then GameId then universal)
+        local placeIdStr = tostring(game.PlaceId)
+        local gameIdStr = tostring(game.GameId)
+        
+        local gameModule = __modules["games/" .. placeIdStr] and ("games/" .. placeIdStr) or (__modules["games/" .. gameIdStr] and ("games/" .. gameIdStr) or "games/universal")
     
         if gameModule then
             local success, mod = pcall(function()
@@ -2010,7 +2011,7 @@ do
                 pcall(function()
                     mod.Init(uiInstance, Config, Notifications)
                 end)
-                print(string.format("[%s] Loaded game module for PlaceId: %s", Hub.Name, tostring(placeId)))
+                print(string.format("[%s] Loaded game module for ID: %s (%s)", Hub.Name, placeIdStr, Hub.SupportedGames[game.PlaceId] or Hub.SupportedGames[game.GameId] or "Universal"))
             end
         end
     

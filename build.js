@@ -100,8 +100,8 @@ function build() {
 
   // Mock script.games finder inside initSource
   let finalInit = initSource.replace(
-    /local gameModule = script\.games:FindFirstChild\(gameModuleName\) or script\.games:FindFirstChild\("universal"\)/g,
-    'local gameModuleNameKey = "games/" .. gameModuleName\n    local gameModule = __modules[gameModuleNameKey] and gameModuleNameKey or "games/universal"'
+    /local gameModule = script\.games:FindFirstChild\(placeIdStr\)\s*or script\.games:FindFirstChild\(gameIdStr\)\s*or script\.games:FindFirstChild\("universal"\)/g,
+    'local gameModule = __modules["games/" .. placeIdStr] and ("games/" .. placeIdStr) or (__modules["games/" .. gameIdStr] and ("games/" .. gameIdStr) or "games/universal")'
   ).replace(
     /return require\(gameModule\)/g,
     'return require_module(gameModule)'
