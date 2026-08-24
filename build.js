@@ -70,7 +70,7 @@ function build() {
     }
   });
 
-  let bundle = `--[[\n    Quantum Script Hub - Bundled Standalone Distribution\n    Generated: ${new Date().toISOString()}\n]]\n\n`;
+  let bundle = `--[[\n    Zxscript - Bundled Standalone Distribution\n    Generated: ${new Date().toISOString()}\n]]\n\n`;
   bundle += `local __modules = {}\nlocal __cache = {}\n\n`;
   bundle += `local function require_module(name)\n`;
   bundle += `    if __cache[name] then return __cache[name] end\n`;

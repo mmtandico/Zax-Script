@@ -1,6 +1,6 @@
 --[[
-    Quantum Script Hub - Bundled Standalone Distribution
-    Generated: 2026-08-24T08:43:48.052Z
+    Zxscript - Bundled Standalone Distribution
+    Generated: 2026-08-24T08:47:56.256Z
 ]]
 
 local __modules = {}
