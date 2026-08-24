@@ -104,6 +104,7 @@ async function refreshRobloxCache() {
         gameName,
         placeId: PLACE_ID,
         universeId: UNIVERSE_ID,
+        rootPlaceId: PLACE_ID,
         activePlayers,
         totalVisits,
         servers,
@@ -117,15 +118,14 @@ refreshRobloxCache();
 
 const server = http.createServer((req, res) => {
     // API Route: Live Roblox Server & Predictor Status (Responds in 0ms from Cache)
-    if (req.url === '/api/roblox-status') {
-        // Ensure predictions calculation is real-time down to the exact second
+    if (req.url === '/api/roblox-status' || req.url === '/api/inspect') {
         cachedRobloxStatus.predictions = calculateEggWavePredictions();
 
         res.writeHead(200, { 
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*'
         });
-        res.end(JSON.stringify(cachedRobloxStatus));
+        res.end(JSON.stringify(cachedRobloxStatus, null, 2));
         return;
     }
 
