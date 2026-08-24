@@ -1,6 +1,6 @@
 /**
  * Steal an Egg - Real-Time Egg Spawn Predictor Application Logic
- * Displays exact egg names, spawn zones, 12-hour AM/PM times, and relative countdowns.
+ * Official Zone Mapping: COSMIC, PREHISTORIC, ABYSS, VOLCANO, SNOW, JUNGLE, CHERRY BLOSSOM.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -40,28 +40,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return `in ${hours} hours`;
     }
 
-    // Exact Egg Definitions with Map Zone Locations
+    // Official Steal an Egg Zone & Egg Database
     const eggDatabase = {
         Secret: [
-            { name: "Tralaledon", zone: "Dino Island", cycleSec: 2100, offsetSec: 780 },
-            { name: "TyrannosaurusRex", zone: "Dino Island", cycleSec: 8100, offsetSec: 7200 },
-            { name: "Warden", zone: "Jungle Temple", cycleSec: 9000, offsetSec: 8100 },
-            { name: "Cave Dragon", zone: "Crystal Cave", cycleSec: 10200, offsetSec: 9300 },
-            { name: "Alien Skeleton Boss", zone: "Sci-Fi Space Lab", cycleSec: 11700, offsetSec: 10800 },
-            { name: "Cerberus", zone: "Underworld Lair", cycleSec: 17400, offsetSec: 16500 },
-            { name: "Yeti", zone: "Snow Mountain Peak", cycleSec: 23400, offsetSec: 22500 },
-            { name: "Kraken", zone: "Atlantis Ocean Floor", cycleSec: 33600, offsetSec: 32700 }
+            { name: "Tralaledon", zone: "PREHISTORIC", zoneCss: "prehistoric", cycleSec: 2100, offsetSec: 780 },
+            { name: "TyrannosaurusRex", zone: "PREHISTORIC", zoneCss: "prehistoric", cycleSec: 8100, offsetSec: 7200 },
+            { name: "King Snake (Warden)", zone: "JUNGLE", zoneCss: "jungle", cycleSec: 9000, offsetSec: 8100 },
+            { name: "Cave Dragon", zone: "COSMIC", zoneCss: "cosmic", cycleSec: 10200, offsetSec: 9300 },
+            { name: "Alien Skeleton Boss", zone: "COSMIC", zoneCss: "cosmic", cycleSec: 11700, offsetSec: 10800 },
+            { name: "Cerberus", zone: "VOLCANO", zoneCss: "volcano", cycleSec: 17400, offsetSec: 16500 },
+            { name: "Yeti", zone: "SNOW", zoneCss: "snow", cycleSec: 23400, offsetSec: 22500 },
+            { name: "Kraken", zone: "ABYSS", zoneCss: "abyss", cycleSec: 33600, offsetSec: 32700 }
         ],
         Eternal: [
-            { name: "Mosasaurus", zone: "Deep Water Trench", cycleSec: 10500, offsetSec: 9600 },
-            { name: "Eternal Lunar Dragon", zone: "Lunar Temple Summit", cycleSec: 22200, offsetSec: 21300 },
-            { name: "Dragon", zone: "Volcano Lava Crater", cycleSec: 24000, offsetSec: 23100 },
-            { name: "El Maja", zone: "Desert Pyramid", cycleSec: 32100, offsetSec: 31200 },
-            { name: "Ascended Vermilion Phoenix", zone: "Celestial Sky Shrine", cycleSec: 38100, offsetSec: 37200 },
-            { name: "Ice Dragon", zone: "Frost Citadel Glacier", cycleSec: 65400, offsetSec: 64500 }
+            { name: "Mosasaurus", zone: "PREHISTORIC", zoneCss: "prehistoric", cycleSec: 10500, offsetSec: 9600 },
+            { name: "Eternal Lunar Dragon", zone: "COSMIC", zoneCss: "cosmic", cycleSec: 22200, offsetSec: 21300 },
+            { name: "Dragon", zone: "VOLCANO", zoneCss: "volcano", cycleSec: 24000, offsetSec: 23100 },
+            { name: "El Maja", zone: "ABYSS", zoneCss: "abyss", cycleSec: 32100, offsetSec: 31200 },
+            { name: "Ascended Vermilion Phoenix", zone: "VOLCANO", zoneCss: "volcano", cycleSec: 38100, offsetSec: 37200 },
+            { name: "Ice Dragon", zone: "SNOW", zoneCss: "snow", cycleSec: 65400, offsetSec: 64500 }
         ],
         Divine: [
-            { name: "Unicorn", zone: "Enchanted Rainbow Meadow", cycleSec: 21900, offsetSec: 21000 }
+            { name: "Sakura Dragon (Cherry Blossom Special)", zone: "CHERRY BLOSSOM", zoneCss: "cherry-blossom", cycleSec: 14400, offsetSec: 13500 },
+            { name: "Unicorn", zone: "SPECIAL", zoneCss: "special", cycleSec: 21900, offsetSec: 21000 }
         ]
     };
 
@@ -88,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tier,
                     name: item.name,
                     zone: item.zone,
+                    zoneCss: item.zoneCss,
                     rem,
                     clockStr,
                     relStr
@@ -98,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.innerHTML = `
                     <span class="egg-name">${item.name}</span>
                     <span class="dot-sep">-</span>
-                    <span class="zone-badge">📍 ${item.zone}</span>
+                    <span class="zone-badge ${item.zoneCss}">${item.zone}</span>
                     <span class="dot-sep">-</span>
                     <span class="time-badge">${clockStr}</span>
                     <span class="dot-sep">-</span>
@@ -114,7 +116,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (nextUpItem) {
             if (nextUpName) nextUpName.textContent = nextUpItem.name;
-            if (nextUpZone) nextUpZone.textContent = `📍 ${nextUpItem.zone}`;
+            if (nextUpZone) {
+                nextUpZone.textContent = nextUpItem.zone;
+                nextUpZone.className = `zone-badge ${nextUpItem.zoneCss}`;
+            }
             if (nextUpTime) nextUpTime.textContent = nextUpItem.clockStr;
             if (nextUpRelative) nextUpRelative.textContent = nextUpItem.relStr;
         }

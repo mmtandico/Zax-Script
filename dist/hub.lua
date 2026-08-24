@@ -1,6 +1,6 @@
 --[[
     Zxscript - Bundled Standalone Distribution
-    Generated: 2026-08-24T10:21:08.933Z
+    Generated: 2026-08-24T10:23:17.883Z
 ]]
 
 local __modules = {}
@@ -1135,21 +1135,35 @@ __modules["games/10563114921"] = function()
     end
     
     StealAnEgg.EggZones = {
-        ["Tralaledon"] = "Dino Island",
-        ["TyrannosaurusRex"] = "Dino Island",
-        ["Warden"] = "Jungle Temple",
-        ["Cave Dragon"] = "Crystal Cave",
-        ["Alien Skeleton Boss"] = "Sci-Fi Space Lab",
-        ["Cerberus"] = "Underworld Lair",
-        ["Yeti"] = "Snow Mountain Peak",
-        ["Kraken"] = "Atlantis Ocean Floor",
-        ["Mosasaurus"] = "Deep Water Trench",
-        ["Eternal Lunar Dragon"] = "Lunar Temple Summit",
-        ["Dragon"] = "Volcano Lava Crater",
-        ["El Maja"] = "Desert Pyramid",
-        ["Ascended Vermilion Phoenix"] = "Celestial Sky Shrine",
-        ["Ice Dragon"] = "Frost Citadel Glacier",
-        ["Unicorn"] = "Enchanted Rainbow Meadow",
+        ["Lunar Dragon"] = "COSMIC",
+        ["Eternal Lunar Dragon"] = "COSMIC",
+        ["Cave Dragon"] = "COSMIC",
+        ["Skeleton Boss"] = "COSMIC",
+        ["Alien Skeleton Boss"] = "COSMIC",
+        
+        ["Tralaledon"] = "PREHISTORIC",
+        ["T-Rex"] = "PREHISTORIC",
+        ["TyrannosaurusRex"] = "PREHISTORIC",
+        ["Mosasaurus"] = "PREHISTORIC",
+        
+        ["El Maja"] = "ABYSS",
+        ["Kraken"] = "ABYSS",
+        
+        ["Dragon"] = "VOLCANO",
+        ["Phoenix"] = "VOLCANO",
+        ["Ascended Vermilion Phoenix"] = "VOLCANO",
+        ["Cerberus"] = "VOLCANO",
+        
+        ["Ice Dragon"] = "SNOW",
+        ["Yeti"] = "SNOW",
+        
+        ["King Snake"] = "JUNGLE",
+        ["Warden"] = "JUNGLE",
+        
+        ["Sakura Dragon"] = "CHERRY BLOSSOM",
+        ["Kitsune"] = "CHERRY BLOSSOM",
+        
+        ["Unicorn"] = "SPECIAL",
     }
     
     -- Add Spawn Log Card to Floating HUD

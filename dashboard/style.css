@@ -1,6 +1,6 @@
 /*
     Steal an Egg - Reference Predictor UI Stylesheet
-    Matches the exact dark card layout from reference screenshot.
+    Matches exact zone colors and dark layout from official reference image.
 */
 
 :root {
@@ -122,16 +122,24 @@ body {
     opacity: 0.6;
 }
 
-/* ZONE BADGE */
+/* OFFICIAL ZONE COLORS & BADGES */
 .zone-badge {
-    background: rgba(0, 255, 255, 0.1);
-    color: #00ffff;
-    border: 1px solid rgba(0, 255, 255, 0.25);
-    padding: 2px 8px;
+    padding: 3px 10px;
     border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
+
+.zone-badge.cosmic { background: rgba(0, 136, 255, 0.2); color: #0088ff; border: 1px solid #0088ff; }
+.zone-badge.prehistoric { background: rgba(255, 170, 0, 0.2); color: #ffaa00; border: 1px solid #ffaa00; }
+.zone-badge.abyss { background: rgba(0, 229, 255, 0.2); color: #00e5ff; border: 1px solid #00e5ff; }
+.zone-badge.volcano { background: rgba(255, 51, 51, 0.2); color: #ff3333; border: 1px solid #ff3333; }
+.zone-badge.snow { background: rgba(226, 232, 240, 0.2); color: #e2e8f0; border: 1px solid #e2e8f0; }
+.zone-badge.jungle { background: rgba(0, 255, 68, 0.2); color: #00ff44; border: 1px solid #00ff44; }
+.zone-badge.cherry-blossom { background: rgba(255, 105, 180, 0.2); color: #ff69b4; border: 1px solid #ff69b4; box-shadow: 0 0 10px rgba(255, 105, 180, 0.3); }
+.zone-badge.special { background: rgba(170, 0, 255, 0.2); color: #aa00ff; border: 1px solid #aa00ff; }
 
 /* BADGES */
 .time-badge {
