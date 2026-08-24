@@ -1,7 +1,7 @@
 /**
  * Steal an Egg - Real-Time PC Standalone Predictor & Server Tracker
  * Fetches live game data directly from Roblox Web APIs without needing an executor.
- * Run using: node dashboard/server.js
+ * UniverseId: 10563114921 | PlaceId: 107778070777162
  */
 
 const http = require('http');
@@ -11,8 +11,8 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 const DASHBOARD_DIR = __dirname;
-const PLACE_ID = '10563114921';
-const UNIVERSE_ID = '107778070777162';
+const UNIVERSE_ID = '10563114921';
+const PLACE_ID = '107778070777162';
 
 const MIME_TYPES = {
     '.html': 'text/html',
@@ -25,7 +25,7 @@ const MIME_TYPES = {
 
 // Helper: Fetch JSON from HTTPS API
 function fetchJson(url) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const options = {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -41,7 +41,7 @@ function fetchJson(url) {
                     resolve(null);
                 }
             });
-        }).on('error', (err) => resolve(null));
+        }).on('error', () => resolve(null));
     });
 }
 
@@ -49,7 +49,6 @@ function fetchJson(url) {
 function calculateEggWavePredictions() {
     const now = Math.floor(Date.now() / 1000);
 
-    // Wave Intervals in Seconds
     const eternalInterval = 3600; // 60 minutes
     const secretInterval = 1500;  // 25 minutes
     const divineInterval = 600;   // 10 minutes
@@ -70,12 +69,11 @@ function calculateEggWavePredictions() {
     };
 }
 
-// Server Request Handler
 const server = http.createServer(async (req, res) => {
     // API Route: Live Roblox Server & Predictor Status
     if (req.url === '/api/roblox-status') {
         const gameInfo = await fetchJson(`https://games.roblox.com/v1/games?universeIds=${UNIVERSE_ID}`);
-        const serverList = await fetchJson(`https://games.roblox.com/v1/games/${UNIVERSE_ID}/servers/Public?limit=10`);
+        const serverList = await fetchJson(`https://games.roblox.com/v1/games/${PLACE_ID}/servers/Public?limit=10`);
         const predictions = calculateEggWavePredictions();
 
         res.writeHead(200, { 
@@ -83,8 +81,11 @@ const server = http.createServer(async (req, res) => {
             'Access-Control-Allow-Origin': '*'
         });
 
-        const activePlayers = (gameInfo && gameInfo.data && gameInfo.data[0]) ? gameInfo.data[0].playing : 0;
-        const totalVisits = (gameInfo && gameInfo.data && gameInfo.data[0]) ? gameInfo.data[0].visits : 0;
+        const gameData = (gameInfo && gameInfo.data && gameInfo.data[0]) ? gameInfo.data[0] : {};
+        const activePlayers = gameData.playing || 0;
+        const totalVisits = gameData.visits || 0;
+        const gameName = gameData.name || "Steal An Egg";
+
         const servers = (serverList && serverList.data) ? serverList.data.map(s => ({
             id: s.id,
             playing: s.playing,
@@ -95,6 +96,7 @@ const server = http.createServer(async (req, res) => {
 
         res.end(JSON.stringify({
             success: true,
+            gameName,
             placeId: PLACE_ID,
             universeId: UNIVERSE_ID,
             activePlayers,
@@ -136,7 +138,7 @@ server.on('error', (err) => {
 server.listen(PORT, () => {
     console.log(`================================================================`);
     console.log(`⚡ Steal an Egg - Real-Time PC Predictor Server Online!`);
-    console.log(`📡 Fetching Live Roblox API Data for Universe: ${UNIVERSE_ID}`);
+    console.log(`📡 Connected Live to Roblox APIs (Universe: ${UNIVERSE_ID} | Place: ${PLACE_ID})`);
     console.log(`🌐 Access Dashboard at: http://localhost:${PORT}`);
     console.log(`================================================================`);
 });

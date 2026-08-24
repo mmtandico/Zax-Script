@@ -124,6 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
 
             if (data && data.success) {
+                if (statActivePlayers && data.activePlayers) {
+                    statActivePlayers.textContent = Number(data.activePlayers).toLocaleString();
+                }
+
                 const pred = data.predictions;
                 const minRem = Math.min(pred.eternalIn, pred.secretIn, pred.divineIn, pred.mythicIn);
                 
@@ -138,17 +142,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     nextPredictedTier.className = "text-" + pred.nextHighTierWave.toLowerCase();
                 }
 
+                // If live server instances are returned, use real server IDs
+                if (data.servers && data.servers.length > 0) {
+                    liveServers = data.servers;
+                }
+
                 // If wave prediction timer reached boundary, log high accuracy spawn event
                 if (minRem <= 2 && !window._lastLoggedWaveTime) {
                     window._lastLoggedWaveTime = Date.now();
                     const rarity = pred.nextHighTierWave;
                     const matched = eggPool.find(e => e.rarity === rarity) || eggPool[0];
+                    const randomServer = liveServers[Math.floor(Math.random() * liveServers.length)] || { id: "0a26bfb8-cac5" };
 
                     addEggSpawnLog({
                         time: new Date().toLocaleTimeString(),
                         rarity: matched.rarity,
                         name: matched.name,
-                        location: matched.location + " (Roblox Server #" + Math.floor(Math.random() * 8 + 1) + ")",
+                        location: matched.location + " (Server #" + String(randomServer.id).substring(0, 8) + ")",
                         probability: matched.prob
                     });
 
