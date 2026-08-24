@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Official Steal an Egg Zone & Egg Database
     const eggDatabase = {
         Secret: [
-            { name: "Tralaledon", zone: "PREHISTORIC", zoneCss: "prehistoric", cycleSec: 2100, offsetSec: 780 },
-            { name: "TyrannosaurusRex", zone: "PREHISTORIC", zoneCss: "prehistoric", cycleSec: 8100, offsetSec: 7200 },
+            { name: "Tralaledon", zone: "PREHISTORIC", zoneCss: "prehistoric", cycleSec: 1800, offsetSec: 0 },
+            { name: "TyrannosaurusRex", zone: "PREHISTORIC", zoneCss: "prehistoric", cycleSec: 3600, offsetSec: 1800 },
             { name: "King Snake (Warden)", zone: "JUNGLE", zoneCss: "jungle", cycleSec: 9000, offsetSec: 8100 },
             { name: "Cave Dragon", zone: "COSMIC", zoneCss: "cosmic", cycleSec: 10200, offsetSec: 9300 },
             { name: "Alien Skeleton Boss", zone: "COSMIC", zoneCss: "cosmic", cycleSec: 11700, offsetSec: 10800 },
