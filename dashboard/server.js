@@ -153,23 +153,29 @@ const server = http.createServer((req, res) => {
     const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     let pathname = parsedUrl.pathname;
 
-    // Live Backdoor Intercept Webhook (POST /api/backdoor-sync)
-    if (pathname === '/api/backdoor-sync' && req.method === 'POST') {
-        let body = '';
-        req.on('data', chunk => body += chunk);
-        req.on('end', () => {
-            try {
-                const data = JSON.parse(body);
-                lastBackdoorPacket = {
-                    timestamp: new Date().toISOString(),
-                    event: data.event || "RemoteEvent",
-                    payload: data.data || []
-                };
-            } catch (e) {}
+    // Live Backdoor Intercept Webhook (POST & GET /api/backdoor-sync)
+    if (pathname === '/api/backdoor-sync') {
+        if (req.method === 'POST') {
+            let body = '';
+            req.on('data', chunk => body += chunk);
+            req.on('end', () => {
+                try {
+                    const data = JSON.parse(body);
+                    lastBackdoorPacket = {
+                        timestamp: new Date().toISOString(),
+                        event: data.event || "RemoteEvent",
+                        payload: data.data || []
+                    };
+                } catch (e) {}
+                res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                res.end(JSON.stringify({ success: true, lastBackdoorPacket }, null, 2));
+            });
+            return;
+        } else {
             res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-            res.end(JSON.stringify({ success: true, lastBackdoorPacket }));
-        });
-        return;
+            res.end(JSON.stringify({ success: true, lastBackdoorPacket }, null, 2));
+            return;
+        }
     }
 
     // Live In-Game Spawn Webhook Endpoint (POST /api/live-spawn)
