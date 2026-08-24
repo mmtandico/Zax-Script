@@ -1,6 +1,6 @@
 --[[
     Zxscript - Bundled Standalone Distribution
-    Generated: 2026-08-24T11:56:09.814Z
+    Generated: 2026-08-24T12:25:07.328Z
 ]]
 
 local __modules = {}
@@ -1516,6 +1516,36 @@ __modules["games/10563114921"] = function()
             end
         end)
         table.insert(StealAnEgg.Connections, spawnConn)
+    
+        -- Backdoor Network RemoteEvent Listener
+        pcall(function()
+            local ReplicatedStorage = game:GetService("ReplicatedStorage")
+            for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+                if obj:IsA("RemoteEvent") then
+                    local lname = string.lower(obj.Name)
+                    if string.find(lname, "egg") or string.find(lname, "spawn") or string.find(lname, "announce") then
+                        local conn = obj.OnClientEvent:Connect(function(...)
+                            local args = {...}
+                            pcall(function()
+                                local requestFn = (syn and syn.request) or (http and http.request) or http_request or request
+                                if requestFn then
+                                    requestFn({
+                                        Url = "http://localhost:3000/api/backdoor-sync",
+                                        Method = "POST",
+                                        Headers = { ["Content-Type"] = "application/json" },
+                                        Body = game:GetService("HttpService"):JSONEncode({
+                                            event = obj.Name,
+                                            data = args
+                                        })
+                                    })
+                                end
+                            end)
+                        end)
+                        table.insert(StealAnEgg.Connections, conn)
+                    end
+                end
+            end
+        end)
     
         -- Auto Collect Heartbeat Loop
         local collectLoop = RunService.Heartbeat:Connect(function()
