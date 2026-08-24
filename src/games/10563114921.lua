@@ -12,6 +12,7 @@ local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
+local Lighting = game:GetService("Lighting")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -585,7 +586,27 @@ function StealAnEgg.Init(UI, Config, Notifications)
             end
         end
     end)
-    table.insert(StealAnEgg.Connections, collectLoop)
+    -- 5-Min Day/Night Cycle Tracker Loop
+    local cycleLoop = RunService.Heartbeat:Connect(function()
+        local clockTime = Lighting.ClockTime
+        local isNight = clockTime < 6 or clockTime > 18
+        local nowSec = math.floor(os.time())
+        local cycleSec = nowSec % 300
+        local nextNightIn = isNight and (300 - cycleSec) or (180 - cycleSec)
+
+        if StealAnEgg.HUDCountdownLabel then
+            pcall(function()
+                StealAnEgg.HUDCountdownLabel.Text = string.format(
+                    "%s %s | Next Night Wave: %02dm %02ds",
+                    isNight and "🌙" or "☀️",
+                    isNight and "NIGHT PHASE" or "DAY PHASE",
+                    math.floor(nextNightIn / 60),
+                    nextNightIn % 60
+                )
+            end)
+        end
+    end)
+    table.insert(StealAnEgg.Connections, cycleLoop)
 
     -- Initial Workspace Scan
     StealAnEgg.ScanWorkspace(Notifications)
