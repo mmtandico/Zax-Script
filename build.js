@@ -1,5 +1,5 @@
 /**
- * Roblox Script Hub Bundler
+ * Zxscript Bundler
  * Compiles modular Luau files into a single, standalone, loadstring-compatible distribution script.
  */
 

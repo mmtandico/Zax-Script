@@ -1,6 +1,6 @@
 --[[
     Notification System Module
-    Sends notifications via Roblox CoreGui StarterGui or executor notification libraries.
+    Sends notifications via Rayfield Gen2 window:Notify(), with fallback to Roblox CoreGui StarterGui.
 ]]
 
 local StarterGui = game:GetService("StarterGui")
@@ -12,7 +12,7 @@ function Notifications.Send(title: string, text: string, duration: number?, icon
     text = text or ""
     duration = duration or 5
 
-    -- Try UI Library notification if registered in environment
+    -- Try Rayfield notification if registered in environment
     if getgenv and getgenv().HubNotify then
         pcall(function()
             getgenv().HubNotify({

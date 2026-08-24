@@ -1,11 +1,11 @@
 --[[
-    Roblox Script Hub - Main Entry Point
+    Zxscript - Main Entry Point
     Initializes core services, modules, game router, and user interface.
 ]]
 
 -- Cleanup previous execution instance if exists
-if getgenv and getgenv().QuantumHubCleanup then
-    pcall(getgenv().QuantumHubCleanup)
+if getgenv and getgenv().ZxscriptCleanup then
+    pcall(getgenv().ZxscriptCleanup)
 end
 
 -- Core Dependencies
@@ -21,13 +21,14 @@ local Movement = require(script.modules.movement)
 local Utility = require(script.modules.utility)
 
 local Hub = {
-    Name = "Quantum Script Hub",
+    Name = "Zxscript",
     Version = "1.0.0",
     SupportedGames = {
         [286090429] = "Arsenal",
         [2753915549] = "Blox Fruits (Sea 1)",
         [4442272183] = "Blox Fruits (Sea 2)",
         [7449423635] = "Blox Fruits (Sea 3)",
+        [107778070777162] = "Steal an Egg",
     }
 }
 
@@ -36,7 +37,7 @@ function Hub.Start()
 
     -- 1. Initialize Configuration
     pcall(function()
-        Config.Init("QuantumHub")
+        Config.Init("Zxscript")
     end)
 
     -- 2. Initialize Core Feature Modules safely
@@ -68,19 +69,19 @@ function Hub.Start()
 
     -- Register global cleanup
     if getgenv then
-        getgenv().QuantumHubCleanup = function()
+        getgenv().ZxscriptCleanup = function()
             pcall(function() Visuals.Cleanup() end)
             pcall(function() Combat.Cleanup() end)
             pcall(function() Movement.Cleanup() end)
             pcall(function() Utility.Cleanup() end)
-            if UI.ScreenGui then
-                UI.ScreenGui:Destroy()
+            if UI.Window then
+                pcall(function() UI.Window:Unload() end)
             end
         end
     end
 
     -- 5. Welcome Notification
-    Notifications.Success("Quantum Hub successfully loaded!", 4)
+    Notifications.Success("Zxscript successfully loaded!", 4)
 end
 
 -- Start Hub

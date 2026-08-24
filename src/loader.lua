@@ -1,5 +1,5 @@
 --[[
-    Quantum Script Hub - Universal Remote Loader / Bootstrapper
+    Zxscript - Universal Remote Loader / Bootstrapper
     This script is designed to be executed via loadstring in your Roblox Executor.
     
     Usage:
@@ -28,17 +28,17 @@ local function Fetch(url: string)
 end
 
 local function Boot()
-    print("[Quantum Hub] Bootstrapping loader...")
+    print("[Zxscript] Bootstrapping loader...")
     
     local distUrl = Loader.Repository .. "/dist/hub.lua"
     local source = Fetch(distUrl)
 
     if not source then
-        warn("[Quantum Hub] Failed to download script from repository. Check URL or internet connection.")
+        warn("[Zxscript] Failed to download script from repository. Check URL or internet connection.")
         if StarterGui then
             pcall(function()
                 game:GetService("StarterGui"):SetCore("SendNotification", {
-                    Title = "Quantum Hub Error",
+                    Title = "Zxscript Error",
                     Text = "Failed to load script hub from remote source.",
                     Duration = 6
                 })
@@ -49,13 +49,13 @@ local function Boot()
 
     local executable, loadErr = loadstring(source)
     if not executable then
-        warn("[Quantum Hub] Compilation error: " .. tostring(loadErr))
+        warn("[Zxscript] Compilation error: " .. tostring(loadErr))
         return
     end
 
     local success, runErr = pcall(executable)
     if not success then
-        warn("[Quantum Hub] Runtime error: " .. tostring(runErr))
+        warn("[Zxscript] Runtime error: " .. tostring(runErr))
     end
 end
 
